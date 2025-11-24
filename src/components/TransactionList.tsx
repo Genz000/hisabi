@@ -10,12 +10,12 @@ interface TransactionListProps {
 
 export const TransactionList = ({ transactions, onDelete }: TransactionListProps) => {
   return (
-    <Card className="border-primary/20 shadow-lg">
-      <CardHeader>
-        <CardTitle>Recent Transactions</CardTitle>
+    <Card>
+      <CardHeader className="pb-3">
+        <CardTitle className="text-lg">Recent Transactions</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="space-y-3">
+        <div className="space-y-2">
           {transactions.length === 0 ? (
             <p className="text-center text-muted-foreground py-8">
               No transactions yet. Add your first transaction to get started!
@@ -24,35 +24,35 @@ export const TransactionList = ({ transactions, onDelete }: TransactionListProps
             transactions.map((transaction) => (
               <div
                 key={transaction.id}
-                className="flex items-center justify-between p-4 rounded-lg border border-border bg-card hover:bg-accent/5 transition-colors"
+                className="flex items-center justify-between p-3 rounded-lg border bg-card hover:bg-accent/5 transition-colors"
               >
-                <div className="flex items-center gap-4 flex-1">
+                <div className="flex items-center gap-3 flex-1 min-w-0">
                   <div
-                    className={`p-2 rounded-full ${
+                    className={`p-1.5 rounded-full shrink-0 ${
                       transaction.type === "expense"
                         ? "bg-destructive/10 text-destructive"
                         : "bg-success/10 text-success"
                     }`}
                   >
                     {transaction.type === "expense" ? (
-                      <ArrowDownRight className="h-4 w-4" />
+                      <ArrowDownRight className="h-3.5 w-3.5" />
                     ) : (
-                      <ArrowUpRight className="h-4 w-4" />
+                      <ArrowUpRight className="h-3.5 w-3.5" />
                     )}
                   </div>
-                  <div className="flex-1">
-                    <p className="font-medium text-foreground">
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium text-sm text-foreground truncate">
                       {transaction.description || "No description"}
                     </p>
-                    <div className="flex gap-3 text-sm text-muted-foreground">
+                    <div className="flex gap-2 text-xs text-muted-foreground">
                       <span>{transaction.category}</span>
                       <span>•</span>
                       <span>{new Date(transaction.date).toLocaleDateString()}</span>
                     </div>
                   </div>
-                  <div className="text-right">
+                  <div className="text-right shrink-0">
                     <p
-                      className={`text-lg font-bold ${
+                      className={`text-base font-bold ${
                         transaction.type === "expense" ? "text-destructive" : "text-success"
                       }`}
                     >
@@ -65,9 +65,9 @@ export const TransactionList = ({ transactions, onDelete }: TransactionListProps
                   variant="ghost"
                   size="icon"
                   onClick={() => onDelete(transaction.id)}
-                  className="ml-4 text-muted-foreground hover:text-destructive"
+                  className="ml-2 h-8 w-8 shrink-0 text-muted-foreground hover:text-destructive"
                 >
-                  <Trash2 className="h-4 w-4" />
+                  <Trash2 className="h-3.5 w-3.5" />
                 </Button>
               </div>
             ))
