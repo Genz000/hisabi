@@ -36,18 +36,18 @@ export const CategoryBreakdown = ({ transactions }: CategoryBreakdownProps) => {
   const totalExpenses = chartData.reduce((sum, item) => sum + item.value, 0);
 
   return (
-    <Card className="border-primary/20 shadow-lg">
-      <CardHeader>
-        <CardTitle>Spending by Category</CardTitle>
+    <Card>
+      <CardHeader className="pb-3">
+        <CardTitle className="text-lg">Spending by Category</CardTitle>
       </CardHeader>
       <CardContent>
         {chartData.length === 0 ? (
-          <div className="h-[300px] flex items-center justify-center text-muted-foreground">
+          <div className="h-[200px] flex items-center justify-center text-sm text-muted-foreground">
             No expense data available
           </div>
         ) : (
           <>
-            <ResponsiveContainer width="100%" height={300}>
+            <ResponsiveContainer width="100%" height={200}>
               <PieChart>
                 <Pie
                   data={chartData}
@@ -55,7 +55,7 @@ export const CategoryBreakdown = ({ transactions }: CategoryBreakdownProps) => {
                   cy="50%"
                   labelLine={false}
                   label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                  outerRadius={80}
+                  outerRadius={60}
                   fill="#8884d8"
                   dataKey="value"
                 >
@@ -74,12 +74,12 @@ export const CategoryBreakdown = ({ transactions }: CategoryBreakdownProps) => {
                 <Legend />
               </PieChart>
             </ResponsiveContainer>
-            <div className="mt-4 space-y-2">
+            <div className="mt-3 space-y-1.5">
               {chartData.map((item, index) => (
-                <div key={item.name} className="flex items-center justify-between text-sm">
+                <div key={item.name} className="flex items-center justify-between text-xs">
                   <div className="flex items-center gap-2">
                     <div
-                      className="w-3 h-3 rounded-full"
+                      className="w-2.5 h-2.5 rounded-full shrink-0"
                       style={{ backgroundColor: COLORS[index % COLORS.length] }}
                     />
                     <span className="text-foreground">{item.name}</span>
@@ -88,7 +88,7 @@ export const CategoryBreakdown = ({ transactions }: CategoryBreakdownProps) => {
                     <span className="font-semibold text-foreground">
                       ${item.value.toFixed(2)}
                     </span>
-                    <span className="text-muted-foreground ml-2">
+                    <span className="text-muted-foreground ml-1.5">
                       ({((item.value / totalExpenses) * 100).toFixed(1)}%)
                     </span>
                   </div>

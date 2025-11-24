@@ -67,10 +67,10 @@ export const TransactionForm = ({ onSubmit, onCancel }: TransactionFormProps) =>
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label htmlFor="type">Type</Label>
+    <form onSubmit={handleSubmit} className="space-y-3">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div className="space-y-1.5">
+          <Label htmlFor="type" className="text-sm">Type</Label>
           <Select value={type} onValueChange={(value: "expense" | "income") => {
             setType(value);
             setCategory("");
@@ -85,8 +85,8 @@ export const TransactionForm = ({ onSubmit, onCancel }: TransactionFormProps) =>
           </Select>
         </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="amount">Amount ($)</Label>
+        <div className="space-y-1.5">
+          <Label htmlFor="amount" className="text-sm">Amount ($)</Label>
           <Input
             id="amount"
             type="number"
@@ -95,11 +95,12 @@ export const TransactionForm = ({ onSubmit, onCancel }: TransactionFormProps) =>
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
             required
+            className="h-9"
           />
         </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="category">Category</Label>
+        <div className="space-y-1.5">
+          <Label htmlFor="category" className="text-sm">Category</Label>
           <Select value={category} onValueChange={setCategory} required>
             <SelectTrigger id="category">
               <SelectValue placeholder="Select category" />
@@ -114,33 +115,35 @@ export const TransactionForm = ({ onSubmit, onCancel }: TransactionFormProps) =>
           </Select>
         </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="date">Date</Label>
+        <div className="space-y-1.5">
+          <Label htmlFor="date" className="text-sm">Date</Label>
           <Input
             id="date"
             type="date"
             value={date}
             onChange={(e) => setDate(e.target.value)}
             required
+            className="h-9"
           />
         </div>
       </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="description">Description</Label>
+      <div className="space-y-1.5">
+        <Label htmlFor="description" className="text-sm">Description</Label>
         <Input
           id="description"
           placeholder="Enter description"
           value={description}
           onChange={(e) => setDescription(e.target.value)}
+          className="h-9"
         />
       </div>
 
-      <div className="flex gap-3 justify-end">
-        <Button type="button" variant="outline" onClick={onCancel}>
+      <div className="flex gap-2 justify-end">
+        <Button type="button" variant="outline" onClick={onCancel} size="sm">
           Cancel
         </Button>
-        <Button type="submit">Add Transaction</Button>
+        <Button type="submit" size="sm">Add Transaction</Button>
       </div>
     </form>
   );

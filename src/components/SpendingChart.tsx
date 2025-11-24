@@ -32,12 +32,12 @@ export const SpendingChart = ({ transactions }: SpendingChartProps) => {
   });
 
   return (
-    <Card className="border-primary/20 shadow-lg">
-      <CardHeader>
-        <CardTitle>Daily Overview</CardTitle>
+    <Card>
+      <CardHeader className="pb-3">
+        <CardTitle className="text-lg">Daily Overview</CardTitle>
       </CardHeader>
       <CardContent>
-        <ResponsiveContainer width="100%" height={300}>
+        <ResponsiveContainer width="100%" height={200}>
           <BarChart data={chartData}>
             <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
             <XAxis

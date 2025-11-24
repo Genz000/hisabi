@@ -84,29 +84,29 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-secondary/30 via-background to-accent/10">
-      <div className="container mx-auto px-4 py-8 max-w-7xl">
-        <header className="mb-8">
+    <div className="min-h-screen bg-background">
+      <div className="container mx-auto px-4 py-4 max-w-7xl">
+        <header className="mb-4">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-4xl font-bold text-foreground mb-2">Finance Tracker</h1>
-              <p className="text-muted-foreground">Track your expenses and grow your wealth</p>
+              <h1 className="text-2xl font-bold text-foreground mb-1">Finance Tracker</h1>
+              <p className="text-sm text-muted-foreground">Track your expenses and grow your wealth</p>
             </div>
             <Button
               onClick={() => setShowForm(!showForm)}
-              size="lg"
-              className="gap-2 shadow-lg hover:shadow-xl transition-all"
+              size="sm"
+              className="gap-2"
             >
-              <Plus className="h-5 w-5" />
+              <Plus className="h-4 w-4" />
               Add Transaction
             </Button>
           </div>
         </header>
 
         {showForm && (
-          <Card className="mb-8 border-primary/20 shadow-xl">
-            <CardHeader>
-              <CardTitle>New Transaction</CardTitle>
+          <Card className="mb-4">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-lg">New Transaction</CardTitle>
             </CardHeader>
             <CardContent>
               <TransactionForm
@@ -117,54 +117,54 @@ const Index = () => {
           </Card>
         )}
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <Card className="border-primary/20 shadow-lg hover:shadow-xl transition-shadow">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between pb-2 pt-4">
+              <CardTitle className="text-xs font-medium text-muted-foreground">
                 Current Balance
               </CardTitle>
-              <Wallet className="h-5 w-5 text-primary" />
+              <Wallet className="h-4 w-4 text-primary" />
             </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold text-foreground">${currentBalance.toLocaleString()}</div>
-              <p className="text-xs text-muted-foreground mt-1">
+            <CardContent className="pb-4">
+              <div className="text-2xl font-bold text-foreground">${currentBalance.toLocaleString()}</div>
+              <p className="text-xs text-muted-foreground mt-0.5">
                 From ${startingBalance.toLocaleString()} starting
               </p>
             </CardContent>
           </Card>
 
-          <Card className="border-destructive/20 shadow-lg hover:shadow-xl transition-shadow">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between pb-2 pt-4">
+              <CardTitle className="text-xs font-medium text-muted-foreground">
                 Total Expenses
               </CardTitle>
-              <TrendingDown className="h-5 w-5 text-destructive" />
+              <TrendingDown className="h-4 w-4 text-destructive" />
             </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold text-destructive">${totalExpenses.toLocaleString()}</div>
-              <p className="text-xs text-muted-foreground mt-1">
+            <CardContent className="pb-4">
+              <div className="text-2xl font-bold text-destructive">${totalExpenses.toLocaleString()}</div>
+              <p className="text-xs text-muted-foreground mt-0.5">
                 {transactions.filter((t) => t.type === "expense").length} transactions
               </p>
             </CardContent>
           </Card>
 
-          <Card className="border-success/20 shadow-lg hover:shadow-xl transition-shadow">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between pb-2 pt-4">
+              <CardTitle className="text-xs font-medium text-muted-foreground">
                 Total Income
               </CardTitle>
-              <TrendingUp className="h-5 w-5 text-success" />
+              <TrendingUp className="h-4 w-4 text-success" />
             </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold text-success">${totalIncome.toLocaleString()}</div>
-              <p className="text-xs text-muted-foreground mt-1">
+            <CardContent className="pb-4">
+              <div className="text-2xl font-bold text-success">${totalIncome.toLocaleString()}</div>
+              <p className="text-xs text-muted-foreground mt-0.5">
                 {transactions.filter((t) => t.type === "income").length} transactions
               </p>
             </CardContent>
           </Card>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 mb-4">
           <SpendingChart transactions={transactions} />
           <CategoryBreakdown transactions={transactions} />
         </div>
