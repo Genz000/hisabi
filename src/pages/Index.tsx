@@ -1,11 +1,15 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus, TrendingUp, TrendingDown, Wallet } from "lucide-react";
+import { Plus, TrendingUp, TrendingDown, Wallet, LogOut } from "lucide-react";
 import { TransactionForm } from "@/components/TransactionForm";
 import { TransactionList } from "@/components/TransactionList";
 import { SpendingChart } from "@/components/SpendingChart";
 import { CategoryBreakdown } from "@/components/CategoryBreakdown";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import type { User, Session } from "@supabase/supabase-js";
 
 export interface Transaction {
   id: string;
@@ -17,49 +21,71 @@ export interface Transaction {
 }
 
 const Index = () => {
+  const navigate = useNavigate();
+  const [user, setUser] = useState<User | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
   const [showForm, setShowForm] = useState(false);
-  const [transactions, setTransactions] = useState<Transaction[]>([
-    {
-      id: "1",
-      date: "2024-11-21",
-      amount: 30,
-      description: "taxi fnideq",
-      category: "Transportation",
-      type: "expense",
-    },
-    {
-      id: "2",
-      date: "2024-11-22",
-      amount: 40,
-      description: "Danon + Ptata",
-      category: "Food",
-      type: "expense",
-    },
-    {
-      id: "3",
-      date: "2024-11-22",
-      amount: 10,
-      description: "",
-      category: "Nader",
-      type: "expense",
-    },
-    {
-      id: "4",
-      date: "2024-11-23",
-      amount: 60,
-      description: "Filet dajaj",
-      category: "Food",
-      type: "expense",
-    },
-    {
-      id: "5",
-      date: "2024-11-23",
-      amount: 90,
-      description: "Kharja - Sed Smir",
-      category: "Nader",
-      type: "expense",
-    },
-  ]);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // Set up auth state listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        setSession(session);
+        setUser(session?.user ?? null);
+        
+        if (!session) {
+          navigate("/auth");
+        }
+      }
+    );
+
+    // Check for existing session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+      
+      if (!session) {
+        navigate("/auth");
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, [navigate]);
+
+  useEffect(() => {
+    if (user) {
+      fetchTransactions();
+    }
+  }, [user]);
+
+  const fetchTransactions = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("transactions")
+        .select("*")
+        .order("date", { ascending: false });
+
+      if (error) throw error;
+
+      setTransactions(
+        (data || []).map((t) => ({
+          id: t.id,
+          date: t.date,
+          amount: Number(t.amount),
+          description: t.description || "",
+          category: t.category,
+          type: t.type as "expense" | "income",
+        }))
+      );
+    } catch (error: any) {
+      toast.error("Failed to load transactions");
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const startingBalance = 99080;
   const totalExpenses = transactions
@@ -70,18 +96,77 @@ const Index = () => {
     .reduce((sum, t) => sum + t.amount, 0);
   const currentBalance = startingBalance + totalIncome - totalExpenses;
 
-  const handleAddTransaction = (transaction: Omit<Transaction, "id">) => {
-    const newTransaction = {
-      ...transaction,
-      id: Date.now().toString(),
-    };
-    setTransactions([newTransaction, ...transactions]);
-    setShowForm(false);
+  const handleAddTransaction = async (transaction: Omit<Transaction, "id">) => {
+    if (!user) return;
+
+    try {
+      const { data, error } = await supabase
+        .from("transactions")
+        .insert([
+          {
+            ...transaction,
+            user_id: user.id,
+          },
+        ])
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      const newTransaction: Transaction = {
+        id: data.id,
+        date: data.date,
+        amount: Number(data.amount),
+        description: data.description || "",
+        category: data.category,
+        type: data.type as "expense" | "income",
+      };
+
+      setTransactions([newTransaction, ...transactions]);
+      setShowForm(false);
+      toast.success("Transaction added!");
+    } catch (error: any) {
+      toast.error("Failed to add transaction");
+      console.error(error);
+    }
   };
 
-  const handleDeleteTransaction = (id: string) => {
-    setTransactions(transactions.filter((t) => t.id !== id));
+  const handleDeleteTransaction = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from("transactions")
+        .delete()
+        .eq("id", id);
+
+      if (error) throw error;
+
+      setTransactions(transactions.filter((t) => t.id !== id));
+      toast.success("Transaction deleted!");
+    } catch (error: any) {
+      toast.error("Failed to delete transaction");
+      console.error(error);
+    }
   };
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    navigate("/auth");
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <Wallet className="h-12 w-12 text-primary mx-auto mb-4 animate-pulse" />
+          <p className="text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return null;
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -92,14 +177,25 @@ const Index = () => {
               <h1 className="text-2xl font-bold text-foreground mb-1">Finance Tracker</h1>
               <p className="text-sm text-muted-foreground">Track your expenses and grow your wealth</p>
             </div>
-            <Button
-              onClick={() => setShowForm(!showForm)}
-              size="sm"
-              className="gap-2"
-            >
-              <Plus className="h-4 w-4" />
-              Add Transaction
-            </Button>
+            <div className="flex gap-2">
+              <Button
+                onClick={() => setShowForm(!showForm)}
+                size="sm"
+                className="gap-2"
+              >
+                <Plus className="h-4 w-4" />
+                Add Transaction
+              </Button>
+              <Button
+                onClick={handleLogout}
+                size="sm"
+                variant="outline"
+                className="gap-2"
+              >
+                <LogOut className="h-4 w-4" />
+                Logout
+              </Button>
+            </div>
           </div>
         </header>
 
