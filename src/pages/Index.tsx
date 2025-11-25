@@ -7,6 +7,7 @@ import { TransactionForm } from "@/components/TransactionForm";
 import { TransactionList } from "@/components/TransactionList";
 import { SpendingChart } from "@/components/SpendingChart";
 import { CategoryBreakdown } from "@/components/CategoryBreakdown";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import type { User, Session } from "@supabase/supabase-js";
@@ -178,14 +179,23 @@ const Index = () => {
               <p className="text-sm text-muted-foreground">Track your expenses and grow your wealth</p>
             </div>
             <div className="flex gap-2">
-              <Button
-                onClick={() => setShowForm(!showForm)}
-                size="sm"
-                className="gap-2"
-              >
-                <Plus className="h-4 w-4" />
-                Add Transaction
-              </Button>
+              <Dialog open={showForm} onOpenChange={setShowForm}>
+                <DialogTrigger asChild>
+                  <Button size="sm" className="gap-2">
+                    <Plus className="h-4 w-4" />
+                    Add Transaction
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>New Transaction</DialogTitle>
+                  </DialogHeader>
+                  <TransactionForm
+                    onSubmit={handleAddTransaction}
+                    onCancel={() => setShowForm(false)}
+                  />
+                </DialogContent>
+              </Dialog>
               <Button
                 onClick={handleLogout}
                 size="sm"
@@ -198,20 +208,6 @@ const Index = () => {
             </div>
           </div>
         </header>
-
-        {showForm && (
-          <Card className="mb-4">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-lg">New Transaction</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <TransactionForm
-                onSubmit={handleAddTransaction}
-                onCancel={() => setShowForm(false)}
-              />
-            </CardContent>
-          </Card>
-        )}
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
           <Card>
