@@ -1,10 +1,15 @@
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Transaction } from "@/pages/Index";
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from "recharts";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
 
 interface CategoryBreakdownProps {
   transactions: Transaction[];
 }
+
+type ViewMode = "daily" | "monthly";
 
 const COLORS = [
   "hsl(160, 84%, 39%)",
@@ -18,8 +23,23 @@ const COLORS = [
 ];
 
 export const CategoryBreakdown = ({ transactions }: CategoryBreakdownProps) => {
+  const [viewMode, setViewMode] = useState<ViewMode>("daily");
+
+  // Filter transactions for current month if in daily mode
+  const now = new Date();
+  const currentMonth = now.getMonth();
+  const currentYear = now.getFullYear();
+  
+  const filteredTransactions = viewMode === "daily"
+    ? transactions.filter(t => {
+        const transactionDate = new Date(t.date);
+        return transactionDate.getMonth() === currentMonth && 
+               transactionDate.getFullYear() === currentYear;
+      })
+    : transactions;
+
   // Group expenses by category
-  const expensesByCategory = transactions
+  const expensesByCategory = filteredTransactions
     .filter((t) => t.type === "expense")
     .reduce((acc, transaction) => {
       if (!acc[transaction.category]) {
@@ -38,7 +58,23 @@ export const CategoryBreakdown = ({ transactions }: CategoryBreakdownProps) => {
   return (
     <Card>
       <CardHeader className="pb-3">
-        <CardTitle className="text-lg">Spending by Category</CardTitle>
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-lg">Spending by Category</CardTitle>
+          <RadioGroup
+            value={viewMode}
+            onValueChange={(value) => setViewMode(value as ViewMode)}
+            className="flex gap-4"
+          >
+            <div className="flex items-center gap-1.5">
+              <RadioGroupItem value="daily" id="daily-category" />
+              <Label htmlFor="daily-category" className="text-xs cursor-pointer">Daily</Label>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <RadioGroupItem value="monthly" id="monthly-category" />
+              <Label htmlFor="monthly-category" className="text-xs cursor-pointer">Monthly</Label>
+            </div>
+          </RadioGroup>
+        </div>
       </CardHeader>
       <CardContent>
         {chartData.length === 0 ? (
