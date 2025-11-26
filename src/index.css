@@ -1,3 +1,5 @@
+@import url("https://fonts.googleapis.com/css2?family=Poppins&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=JetBrains+Mono&display=swap");
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -39,7 +41,7 @@ All colors MUST be HSL.
     --input: 160 20% 90%;
     --ring: 200 98.01% 39.4118%;
 
-    --radius: 1rem;
+    --radius: 0.7rem;
 
     --sidebar-background: 0 0% 98%;
 
@@ -64,6 +66,10 @@ All colors MUST be HSL.
     --shadow-md: 0px 1px 4.5px 0px hsla(0, 0%, 0%, 0.2);
 
     --shadow-lg: 0px 1px 7.5px 0px hsla(0, 0%, 0%, 0.2);
+
+    --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, Liberation Mono, Courier New, monospace;
+
+    --font-sans: Poppins, ui-sans-serif, system-ui, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji;
   }
 
   .dark {
@@ -105,11 +111,13 @@ All colors MUST be HSL.
     --sidebar-accent-foreground: 240 4.8% 95.9%;
     --sidebar-border: 240 3.7% 15.9%;
     --sidebar-ring: 217.2 91.2% 59.8%;
-    --radius: 1rem;
+    --radius: 0.7rem;
     --shadow-sm: 0px 1px 1.5px 0px hsla(0, 0%, 0%, 0.2);
     --shadow: 0px 1px 3px 0px hsla(0, 0%, 0%, 0.2);
     --shadow-md: 0px 1px 4.5px 0px hsla(0, 0%, 0%, 0.2);
     --shadow-lg: 0px 1px 7.5px 0px hsla(0, 0%, 0%, 0.2);
+    --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, Liberation Mono, Courier New, monospace;
+    --font-sans: Poppins, ui-sans-serif, system-ui, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji;
   }
 }
 
