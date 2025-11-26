@@ -13,7 +13,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import type { User, Session } from "@supabase/supabase-js";
 import logo from "@/assets/logo.png";
-
 export interface Transaction {
   id: string;
   date: string;
@@ -22,7 +21,6 @@ export interface Transaction {
   category: string;
   type: "expense" | "income";
 }
-
 const Index = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState<User | null>(null);
@@ -30,58 +28,56 @@ const Index = () => {
   const [showForm, setShowForm] = useState(false);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
-
   useEffect(() => {
     // Set up auth state listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
-        
-        if (!session) {
-          navigate("/auth");
-        }
+    const {
+      data: {
+        subscription
       }
-    );
-
-    // Check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    } = supabase.auth.onAuthStateChange((event, session) => {
       setSession(session);
       setUser(session?.user ?? null);
-      
       if (!session) {
         navigate("/auth");
       }
     });
 
+    // Check for existing session
+    supabase.auth.getSession().then(({
+      data: {
+        session
+      }
+    }) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+      if (!session) {
+        navigate("/auth");
+      }
+    });
     return () => subscription.unsubscribe();
   }, [navigate]);
-
   useEffect(() => {
     if (user) {
       fetchTransactions();
     }
   }, [user]);
-
   const fetchTransactions = async () => {
     try {
-      const { data, error } = await supabase
-        .from("transactions")
-        .select("*")
-        .order("date", { ascending: false });
-
+      const {
+        data,
+        error
+      } = await supabase.from("transactions").select("*").order("date", {
+        ascending: false
+      });
       if (error) throw error;
-
-      setTransactions(
-        (data || []).map((t) => ({
-          id: t.id,
-          date: t.date,
-          amount: Number(t.amount),
-          description: t.description || "",
-          category: t.category,
-          type: t.type as "expense" | "income",
-        }))
-      );
+      setTransactions((data || []).map(t => ({
+        id: t.id,
+        date: t.date,
+        amount: Number(t.amount),
+        description: t.description || "",
+        category: t.category,
+        type: t.type as "expense" | "income"
+      })));
     } catch (error: any) {
       toast.error("Failed to load transactions");
       console.error(error);
@@ -89,42 +85,29 @@ const Index = () => {
       setLoading(false);
     }
   };
-
   const startingBalance = 99080;
-  const totalExpenses = transactions
-    .filter((t) => t.type === "expense")
-    .reduce((sum, t) => sum + t.amount, 0);
-  const totalIncome = transactions
-    .filter((t) => t.type === "income")
-    .reduce((sum, t) => sum + t.amount, 0);
+  const totalExpenses = transactions.filter(t => t.type === "expense").reduce((sum, t) => sum + t.amount, 0);
+  const totalIncome = transactions.filter(t => t.type === "income").reduce((sum, t) => sum + t.amount, 0);
   const currentBalance = startingBalance + totalIncome - totalExpenses;
-
   const handleAddTransaction = async (transaction: Omit<Transaction, "id">) => {
     if (!user) return;
-
     try {
-      const { data, error } = await supabase
-        .from("transactions")
-        .insert([
-          {
-            ...transaction,
-            user_id: user.id,
-          },
-        ])
-        .select()
-        .single();
-
+      const {
+        data,
+        error
+      } = await supabase.from("transactions").insert([{
+        ...transaction,
+        user_id: user.id
+      }]).select().single();
       if (error) throw error;
-
       const newTransaction: Transaction = {
         id: data.id,
         date: data.date,
         amount: Number(data.amount),
         description: data.description || "",
         category: data.category,
-        type: data.type as "expense" | "income",
+        type: data.type as "expense" | "income"
       };
-
       setTransactions([newTransaction, ...transactions]);
       setShowForm(false);
       toast.success("Transaction added!");
@@ -133,46 +116,35 @@ const Index = () => {
       console.error(error);
     }
   };
-
   const handleDeleteTransaction = async (id: string) => {
     try {
-      const { error } = await supabase
-        .from("transactions")
-        .delete()
-        .eq("id", id);
-
+      const {
+        error
+      } = await supabase.from("transactions").delete().eq("id", id);
       if (error) throw error;
-
-      setTransactions(transactions.filter((t) => t.id !== id));
+      setTransactions(transactions.filter(t => t.id !== id));
       toast.success("Transaction deleted!");
     } catch (error: any) {
       toast.error("Failed to delete transaction");
       console.error(error);
     }
   };
-
   const handleLogout = async () => {
     await supabase.auth.signOut();
     navigate("/auth");
   };
-
   if (loading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+    return <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
           <Wallet className="h-12 w-12 text-primary mx-auto mb-4 animate-pulse" />
           <p className="text-muted-foreground">Loading...</p>
         </div>
-      </div>
-    );
+      </div>;
   }
-
   if (!user) {
     return null;
   }
-
-  return (
-    <div className="min-h-screen bg-background">
+  return <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-4 max-w-7xl xl:w-[70%]">
         <header className="mb-4">
           <div className="flex items-center justify-between">
@@ -180,7 +152,7 @@ const Index = () => {
               <img src={logo} alt="Finance Tracker Logo" className="h-10 w-10" />
               <div>
                 <h1 className="text-2xl font-bold text-foreground mb-1">Finance Tracker</h1>
-                <p className="text-sm text-muted-foreground">Track your expenses and grow your wealth</p>
+                
               </div>
             </div>
             <div className="flex gap-2">
@@ -195,17 +167,10 @@ const Index = () => {
                   <DialogHeader>
                     <DialogTitle>New Transaction</DialogTitle>
                   </DialogHeader>
-                  <TransactionForm
-                    onSubmit={handleAddTransaction}
-                    onCancel={() => setShowForm(false)}
-                  />
+                  <TransactionForm onSubmit={handleAddTransaction} onCancel={() => setShowForm(false)} />
                 </DialogContent>
               </Dialog>
-              <Button
-                onClick={handleLogout}
-                size="sm"
-                variant="destructive"
-              >
+              <Button onClick={handleLogout} size="sm" variant="destructive">
                 <LogOut className="h-4 w-4" />
               </Button>
             </div>
@@ -239,7 +204,7 @@ const Index = () => {
             <CardContent className="pb-4">
               <div className="text-2xl font-bold text-destructive">${totalExpenses.toLocaleString()}</div>
               <p className="text-xs text-muted-foreground mt-0.5">
-                {transactions.filter((t) => t.type === "expense").length} transactions
+                {transactions.filter(t => t.type === "expense").length} transactions
               </p>
             </CardContent>
           </Card>
@@ -254,7 +219,7 @@ const Index = () => {
             <CardContent className="pb-4">
               <div className="text-2xl font-bold text-success">${totalIncome.toLocaleString()}</div>
               <p className="text-xs text-muted-foreground mt-0.5">
-                {transactions.filter((t) => t.type === "income").length} transactions
+                {transactions.filter(t => t.type === "income").length} transactions
               </p>
             </CardContent>
           </Card>
@@ -265,13 +230,8 @@ const Index = () => {
           <CategoryBreakdown transactions={transactions} />
         </div>
 
-        <TransactionList
-          transactions={transactions}
-          onDelete={handleDeleteTransaction}
-        />
+        <TransactionList transactions={transactions} onDelete={handleDeleteTransaction} />
       </div>
-    </div>
-  );
+    </div>;
 };
-
 export default Index;
