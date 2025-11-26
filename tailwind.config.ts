@@ -91,7 +91,7 @@ export default {
   		},
   		fontFamily: {
   			sans: [
-  				'Poppins',
+  				'Manrope',
   				'ui-sans-serif',
   				'system-ui',
   				'sans-serif',
