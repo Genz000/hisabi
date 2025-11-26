@@ -11,6 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import type { User, Session } from "@supabase/supabase-js";
+import logo from "@/assets/logo.png";
 
 export interface Transaction {
   id: string;
@@ -174,9 +175,12 @@ const Index = () => {
       <div className="container mx-auto px-4 py-4 max-w-7xl">
         <header className="mb-4">
           <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold text-foreground mb-1">Finance Tracker</h1>
-              <p className="text-sm text-muted-foreground">Track your expenses and grow your wealth</p>
+            <div className="flex items-center gap-3">
+              <img src={logo} alt="Finance Tracker Logo" className="h-10 w-10" />
+              <div>
+                <h1 className="text-2xl font-bold text-foreground mb-1">Finance Tracker</h1>
+                <p className="text-sm text-muted-foreground">Track your expenses and grow your wealth</p>
+              </div>
             </div>
             <div className="flex gap-2">
               <Dialog open={showForm} onOpenChange={setShowForm}>
