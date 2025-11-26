@@ -178,7 +178,7 @@ const Index = () => {
         </header>
         <Separator className="mb-4" />
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4 py-0 pt-[30px]">
+        <div className="grid grid-cols-3 gap-3 mb-4 py-0 pt-[30px]">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-2 pt-4">
               <CardTitle className="text-xs font-medium text-muted-foreground">
