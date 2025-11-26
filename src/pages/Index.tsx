@@ -8,6 +8,7 @@ import { TransactionList } from "@/components/TransactionList";
 import { SpendingChart } from "@/components/SpendingChart";
 import { CategoryBreakdown } from "@/components/CategoryBreakdown";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Separator } from "@/components/ui/separator";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import type { User, Session } from "@supabase/supabase-js";
@@ -172,7 +173,7 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-4 py-4 max-w-7xl">
+      <div className="container mx-auto px-4 py-4 max-w-7xl xl:w-1/2">
         <header className="mb-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -203,15 +204,14 @@ const Index = () => {
               <Button
                 onClick={handleLogout}
                 size="sm"
-                variant="outline"
-                className="gap-2"
+                variant="destructive"
               >
                 <LogOut className="h-4 w-4" />
-                Logout
               </Button>
             </div>
           </div>
         </header>
+        <Separator className="mb-4" />
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
           <Card>
