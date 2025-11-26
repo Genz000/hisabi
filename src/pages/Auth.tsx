@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
-import { Wallet } from "lucide-react";
+import logo from "@/assets/logo.png";
 export default function Auth() {
   const navigate = useNavigate();
   const [isLogin, setIsLogin] = useState(true);
@@ -51,9 +51,7 @@ export default function Auth() {
       <Card className="w-full max-w-md border-solid mx-0 px-[30px] py-[25px] shadow-sm bg-white border-slate-200 border rounded-2xl">
         <CardHeader className="space-y-1 text-center">
           <div className="flex justify-center mb-2">
-            <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
-              <Wallet className="h-6 w-6 text-primary" />
-            </div>
+            <img src={logo} alt="Finance Tracker Logo" className="w-16 h-16" />
           </div>
           <CardTitle className="text-2xl">Finance Tracker</CardTitle>
           <CardDescription>
