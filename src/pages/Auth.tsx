@@ -48,7 +48,7 @@ export default function Auth() {
     }
   };
   return <div className="min-h-screen bg-background flex items-center justify-center p-4">
-      <Card className="w-full max-w-md border-0 border-solid mx-0 px-[30px] py-[25px] shadow-sm bg-white border-slate-200 rounded-md">
+      <Card className="w-full max-w-md border-solid mx-0 px-[30px] py-[25px] shadow-sm bg-white border-slate-200 border rounded-2xl">
         <CardHeader className="space-y-1 text-center">
           <div className="flex justify-center mb-2">
             <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
@@ -70,7 +70,7 @@ export default function Auth() {
               <Label htmlFor="password">Password</Label>
               <Input id="password" type="password" placeholder="••••••••" value={password} onChange={e => setPassword(e.target.value)} required minLength={6} />
             </div>
-            <Button type="submit" className="w-full" disabled={loading}>
+            <Button type="submit" disabled={loading} className="w-full py-0 my-[50px] mb-[10px]">
               {loading ? "Loading..." : isLogin ? "Sign In" : "Sign Up"}
             </Button>
           </form>
