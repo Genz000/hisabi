@@ -2,43 +2,26 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Trash2, ArrowUpRight, ArrowDownRight } from "lucide-react";
 import { Transaction } from "@/pages/Index";
-
 interface TransactionListProps {
   transactions: Transaction[];
   onDelete: (id: string) => void;
 }
-
-export const TransactionList = ({ transactions, onDelete }: TransactionListProps) => {
-  return (
-    <Card>
+export const TransactionList = ({
+  transactions,
+  onDelete
+}: TransactionListProps) => {
+  return <Card className="px-[10px]">
       <CardHeader className="pb-3">
         <CardTitle className="text-lg">Recent Transactions</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="space-y-2">
-          {transactions.length === 0 ? (
-            <p className="text-center text-muted-foreground py-8">
+          {transactions.length === 0 ? <p className="text-center text-muted-foreground py-8">
               No transactions yet. Add your first transaction to get started!
-            </p>
-          ) : (
-            transactions.map((transaction) => (
-              <div
-                key={transaction.id}
-                className="flex items-center justify-between p-3 rounded-lg border bg-card hover:bg-accent/5 transition-colors"
-              >
+            </p> : transactions.map(transaction => <div key={transaction.id} className="flex items-center justify-between p-3 rounded-lg border bg-card hover:bg-accent/5 transition-colors">
                 <div className="flex items-center gap-3 flex-1 min-w-0">
-                  <div
-                    className={`p-1.5 rounded-full shrink-0 ${
-                      transaction.type === "expense"
-                        ? "bg-destructive/10 text-destructive"
-                        : "bg-success/10 text-success"
-                    }`}
-                  >
-                    {transaction.type === "expense" ? (
-                      <ArrowDownRight className="h-3.5 w-3.5" />
-                    ) : (
-                      <ArrowUpRight className="h-3.5 w-3.5" />
-                    )}
+                  <div className={`p-1.5 rounded-full shrink-0 ${transaction.type === "expense" ? "bg-destructive/10 text-destructive" : "bg-success/10 text-success"}`}>
+                    {transaction.type === "expense" ? <ArrowDownRight className="h-3.5 w-3.5" /> : <ArrowUpRight className="h-3.5 w-3.5" />}
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="font-medium text-sm text-foreground truncate">
@@ -51,29 +34,17 @@ export const TransactionList = ({ transactions, onDelete }: TransactionListProps
                     </div>
                   </div>
                   <div className="text-right shrink-0">
-                    <p
-                      className={`text-base font-bold ${
-                        transaction.type === "expense" ? "text-destructive" : "text-success"
-                      }`}
-                    >
+                    <p className={`text-base font-bold ${transaction.type === "expense" ? "text-destructive" : "text-success"}`}>
                       {transaction.type === "expense" ? "-" : "+"}$
                       {transaction.amount.toFixed(2)}
                     </p>
                   </div>
                 </div>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => onDelete(transaction.id)}
-                  className="ml-2 h-8 w-8 shrink-0 text-muted-foreground hover:text-destructive"
-                >
+                <Button variant="ghost" size="icon" onClick={() => onDelete(transaction.id)} className="ml-2 h-8 w-8 shrink-0 text-muted-foreground hover:text-destructive">
                   <Trash2 className="h-3.5 w-3.5" />
                 </Button>
-              </div>
-            ))
-          )}
+              </div>)}
         </div>
       </CardContent>
-    </Card>
-  );
+    </Card>;
 };
