@@ -12,7 +12,7 @@ import { Separator } from "@/components/ui/separator";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import type { User, Session } from "@supabase/supabase-js";
-import logo from "@/assets/logo.png";
+import logo from "@/assets/logo.svg";
 export interface Transaction {
   id: string;
   date: string;
