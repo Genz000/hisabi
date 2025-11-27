@@ -69,7 +69,7 @@ export const CategoryBreakdown = ({
               border: "1px solid hsl(var(--border))",
               borderRadius: "8px"
             }} formatter={(value: number) => `$${value.toFixed(2)}`} />
-                <Legend layout="horizontal" verticalAlign="top" align="center" />
+                
               </PieChart>
             </ResponsiveContainer>
             <div className="mt-6 space-y-1.5">
