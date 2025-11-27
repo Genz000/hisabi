@@ -149,7 +149,7 @@ const Index = () => {
         <header className="mb-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <img src={logo} alt="Finance Tracker Logo" className="h-15 w-40 object-fill" />
+              <img src={logo} alt="Finance Tracker Logo" className="h-12 w-30 object-fill" />
               
             </div>
             <div className="flex gap-2">
