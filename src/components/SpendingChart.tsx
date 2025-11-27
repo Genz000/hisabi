@@ -83,7 +83,7 @@ export const SpendingChart = ({
             border: "1px solid hsl(var(--border))",
             borderRadius: "8px"
           }} />
-            <Legend wrapperStyle={{ maxWidth: "300px", margin: "0 auto" }} />
+            <Legend align="center" wrapperStyle={{ maxWidth: "300px" }} />
             <Line dataKey="expenses" stroke="hsl(var(--destructive))" strokeWidth={2} dot={{ r: 4 }} name="Expenses" />
             <Line dataKey="income" stroke="hsl(var(--success))" strokeWidth={2} dot={{ r: 4 }} name="Income" />
           </LineChart>
