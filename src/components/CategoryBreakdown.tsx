@@ -8,7 +8,7 @@ interface CategoryBreakdownProps {
   transactions: Transaction[];
 }
 type ViewMode = "daily" | "monthly";
-const COLORS = ["hsl(160, 84%, 39%)", "hsl(173, 80%, 40%)", "hsl(142, 76%, 36%)", "hsl(180, 70%, 45%)", "hsl(150, 60%, 50%)", "hsl(165, 75%, 35%)", "hsl(155, 65%, 42%)", "hsl(170, 80%, 38%)"];
+const COLORS = ["hsl(160, 84%, 39%)", "hsl(25, 95%, 53%)", "hsl(262, 83%, 58%)", "hsl(198, 93%, 60%)", "hsl(48, 96%, 53%)", "hsl(339, 90%, 51%)", "hsl(187, 85%, 43%)", "hsl(280, 70%, 60%)"];
 export const CategoryBreakdown = ({
   transactions
 }: CategoryBreakdownProps) => {
@@ -69,10 +69,10 @@ export const CategoryBreakdown = ({
               border: "1px solid hsl(var(--border))",
               borderRadius: "8px"
             }} formatter={(value: number) => `$${value.toFixed(2)}`} />
-                <Legend />
+                <Legend layout="horizontal" verticalAlign="top" align="center" />
               </PieChart>
             </ResponsiveContainer>
-            <div className="mt-3 space-y-1.5">
+            <div className="mt-6 space-y-1.5">
               {chartData.map((item, index) => <div key={item.name} className="flex items-center justify-between text-xs">
                   <div className="flex items-center gap-2">
                     <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{

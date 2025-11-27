@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Transaction } from "@/pages/Index";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 interface SpendingChartProps {
@@ -68,9 +68,9 @@ export const SpendingChart = ({
           </RadioGroup>
         </div>
       </CardHeader>
-      <CardContent>
+      <CardContent className="flex justify-center">
         <ResponsiveContainer width="100%" height={200}>
-          <BarChart data={chartData}>
+          <LineChart data={chartData}>
             <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
             <XAxis dataKey="date" className="text-xs" tick={{
             fill: "hsl(var(--muted-foreground))"
@@ -84,9 +84,9 @@ export const SpendingChart = ({
             borderRadius: "8px"
           }} />
             <Legend />
-            <Bar dataKey="expenses" fill="hsl(var(--destructive))" radius={[8, 8, 0, 0]} name="Expenses" />
-            <Bar dataKey="income" fill="hsl(var(--success))" radius={[8, 8, 0, 0]} name="Income" />
-          </BarChart>
+            <Line dataKey="expenses" stroke="hsl(var(--destructive))" strokeWidth={2} dot={{ r: 4 }} name="Expenses" />
+            <Line dataKey="income" stroke="hsl(var(--success))" strokeWidth={2} dot={{ r: 4 }} name="Income" />
+          </LineChart>
         </ResponsiveContainer>
       </CardContent>
     </Card>;
