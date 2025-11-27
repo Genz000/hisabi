@@ -26,6 +26,7 @@ const Index = () => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [showForm, setShowForm] = useState(false);
+  const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
   useEffect(() => {
@@ -91,29 +92,58 @@ const Index = () => {
   const currentBalance = startingBalance + totalIncome - totalExpenses;
   const handleAddTransaction = async (transaction: Omit<Transaction, "id">) => {
     if (!user) return;
-    try {
-      const {
-        data,
-        error
-      } = await supabase.from("transactions").insert([{
-        ...transaction,
-        user_id: user.id
-      }]).select().single();
-      if (error) throw error;
-      const newTransaction: Transaction = {
-        id: data.id,
-        date: data.date,
-        amount: Number(data.amount),
-        description: data.description || "",
-        category: data.category,
-        type: data.type as "expense" | "income"
-      };
-      setTransactions([newTransaction, ...transactions]);
-      setShowForm(false);
-      toast.success("Transaction added!");
-    } catch (error: any) {
-      toast.error("Failed to add transaction");
-      console.error(error);
+    
+    if (editingTransaction) {
+      // Update existing transaction
+      try {
+        const { error } = await supabase
+          .from("transactions")
+          .update({
+            ...transaction,
+            user_id: user.id
+          })
+          .eq("id", editingTransaction.id);
+        
+        if (error) throw error;
+        
+        setTransactions(transactions.map(t => 
+          t.id === editingTransaction.id 
+            ? { ...transaction, id: editingTransaction.id } 
+            : t
+        ));
+        setShowForm(false);
+        setEditingTransaction(null);
+        toast.success("Transaction updated!");
+      } catch (error: any) {
+        toast.error("Failed to update transaction");
+        console.error(error);
+      }
+    } else {
+      // Add new transaction
+      try {
+        const {
+          data,
+          error
+        } = await supabase.from("transactions").insert([{
+          ...transaction,
+          user_id: user.id
+        }]).select().single();
+        if (error) throw error;
+        const newTransaction: Transaction = {
+          id: data.id,
+          date: data.date,
+          amount: Number(data.amount),
+          description: data.description || "",
+          category: data.category,
+          type: data.type as "expense" | "income"
+        };
+        setTransactions([newTransaction, ...transactions]);
+        setShowForm(false);
+        toast.success("Transaction added!");
+      } catch (error: any) {
+        toast.error("Failed to add transaction");
+        console.error(error);
+      }
     }
   };
   const handleDeleteTransaction = async (id: string) => {
@@ -128,6 +158,16 @@ const Index = () => {
       toast.error("Failed to delete transaction");
       console.error(error);
     }
+  };
+  
+  const handleEditTransaction = (transaction: Transaction) => {
+    setEditingTransaction(transaction);
+    setShowForm(true);
+  };
+  
+  const handleCancelForm = () => {
+    setShowForm(false);
+    setEditingTransaction(null);
   };
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -153,7 +193,10 @@ const Index = () => {
               
             </div>
             <div className="flex gap-2">
-              <Dialog open={showForm} onOpenChange={setShowForm}>
+              <Dialog open={showForm} onOpenChange={(open) => {
+                setShowForm(open);
+                if (!open) setEditingTransaction(null);
+              }}>
                 <DialogTrigger asChild>
                   <Button size="sm" className="gap-2">
                     <Plus className="h-4 w-4" />
@@ -162,9 +205,15 @@ const Index = () => {
                 </DialogTrigger>
                 <DialogContent>
                   <DialogHeader>
-                    <DialogTitle>New Transaction</DialogTitle>
+                    <DialogTitle>
+                      {editingTransaction ? "Edit Transaction" : "New Transaction"}
+                    </DialogTitle>
                   </DialogHeader>
-                  <TransactionForm onSubmit={handleAddTransaction} onCancel={() => setShowForm(false)} />
+                  <TransactionForm 
+                    onSubmit={handleAddTransaction} 
+                    onCancel={handleCancelForm}
+                    initialData={editingTransaction || undefined}
+                  />
                 </DialogContent>
               </Dialog>
               <Button onClick={handleLogout} size="sm" variant="destructive">
@@ -227,7 +276,11 @@ const Index = () => {
           <CategoryBreakdown transactions={transactions} />
         </div>
 
-        <TransactionList transactions={transactions} onDelete={handleDeleteTransaction} />
+        <TransactionList 
+          transactions={transactions} 
+          onDelete={handleDeleteTransaction}
+          onEdit={handleEditTransaction}
+        />
       </div>
     </div>;
 };
