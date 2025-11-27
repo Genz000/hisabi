@@ -83,9 +83,13 @@ export const SpendingChart = ({
             border: "1px solid hsl(var(--border))",
             borderRadius: "8px"
           }} />
-            <Legend align="center" wrapperStyle={{ maxWidth: "300px" }} />
-            <Line dataKey="expenses" stroke="hsl(var(--destructive))" strokeWidth={2} dot={{ r: 4 }} name="Expenses" />
-            <Line dataKey="income" stroke="hsl(var(--success))" strokeWidth={2} dot={{ r: 4 }} name="Income" />
+            
+            <Line dataKey="expenses" stroke="hsl(var(--destructive))" strokeWidth={2} dot={{
+            r: 4
+          }} name="Expenses" />
+            <Line dataKey="income" stroke="hsl(var(--success))" strokeWidth={2} dot={{
+            r: 4
+          }} name="Income" />
           </LineChart>
         </ResponsiveContainer>
       </CardContent>
