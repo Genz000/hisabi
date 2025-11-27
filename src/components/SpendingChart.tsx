@@ -70,7 +70,7 @@ export const SpendingChart = ({
       </CardHeader>
       <CardContent className="flex justify-center">
         <ResponsiveContainer width="100%" height={200}>
-          <LineChart data={chartData}>
+          <LineChart data={chartData} className="mr-0 pl-0 pr-[30px] pt-[10px]">
             <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
             <XAxis dataKey="date" className="text-xs" tick={{
             fill: "hsl(var(--muted-foreground))"
