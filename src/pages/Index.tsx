@@ -149,11 +149,8 @@ const Index = () => {
         <header className="mb-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <img src={logo} alt="Finance Tracker Logo" className="h-10 w-10" />
-              <div className="text-gray-900">
-                <h1 className="mb-1 text-xl text-gray-950 font-sans font-extrabold">Hisabi</h1>
-                
-              </div>
+              <img src={logo} alt="Finance Tracker Logo" className="h-15 w-40 object-fill" />
+              
             </div>
             <div className="flex gap-2">
               <Dialog open={showForm} onOpenChange={setShowForm}>
