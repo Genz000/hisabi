@@ -14,6 +14,7 @@ import { Transaction } from "@/pages/Index";
 interface TransactionFormProps {
   onSubmit: (transaction: Omit<Transaction, "id">) => void;
   onCancel: () => void;
+  initialData?: Transaction;
 }
 
 const EXPENSE_CATEGORIES = [
@@ -38,12 +39,12 @@ const INCOME_CATEGORIES = [
   "Other",
 ];
 
-export const TransactionForm = ({ onSubmit, onCancel }: TransactionFormProps) => {
-  const [type, setType] = useState<"expense" | "income">("expense");
-  const [amount, setAmount] = useState("");
-  const [description, setDescription] = useState("");
-  const [category, setCategory] = useState("");
-  const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
+export const TransactionForm = ({ onSubmit, onCancel, initialData }: TransactionFormProps) => {
+  const [type, setType] = useState<"expense" | "income">(initialData?.type || "expense");
+  const [amount, setAmount] = useState(initialData?.amount.toString() || "");
+  const [description, setDescription] = useState(initialData?.description || "");
+  const [category, setCategory] = useState(initialData?.category || "");
+  const [date, setDate] = useState(initialData?.date || new Date().toISOString().split("T")[0]);
 
   const categories = type === "expense" ? EXPENSE_CATEGORIES : INCOME_CATEGORIES;
 
@@ -143,7 +144,9 @@ export const TransactionForm = ({ onSubmit, onCancel }: TransactionFormProps) =>
         <Button type="button" variant="outline" onClick={onCancel} size="sm">
           Cancel
         </Button>
-        <Button type="submit" size="sm">Add Transaction</Button>
+        <Button type="submit" size="sm">
+          {initialData ? "Update Transaction" : "Add Transaction"}
+        </Button>
       </div>
     </form>
   );

@@ -1,14 +1,16 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Trash2, ArrowUpRight, ArrowDownRight } from "lucide-react";
+import { Trash2, ArrowUpRight, ArrowDownRight, Pencil } from "lucide-react";
 import { Transaction } from "@/pages/Index";
 interface TransactionListProps {
   transactions: Transaction[];
   onDelete: (id: string) => void;
+  onEdit: (transaction: Transaction) => void;
 }
 export const TransactionList = ({
   transactions,
-  onDelete
+  onDelete,
+  onEdit
 }: TransactionListProps) => {
   return <Card className="px-[10px]">
       <CardHeader className="pb-3">
@@ -40,9 +42,14 @@ export const TransactionList = ({
                     </p>
                   </div>
                 </div>
-                <Button variant="ghost" size="icon" onClick={() => onDelete(transaction.id)} className="ml-2 h-8 w-8 shrink-0 text-muted-foreground hover:text-destructive">
-                  <Trash2 className="h-3.5 w-3.5" />
-                </Button>
+                <div className="flex gap-1 ml-2 shrink-0">
+                  <Button variant="ghost" size="icon" onClick={() => onEdit(transaction)} className="h-8 w-8 text-muted-foreground hover:text-primary">
+                    <Pencil className="h-3.5 w-3.5" />
+                  </Button>
+                  <Button variant="ghost" size="icon" onClick={() => onDelete(transaction.id)} className="h-8 w-8 text-muted-foreground hover:text-destructive">
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </Button>
+                </div>
               </div>)}
         </div>
       </CardContent>
