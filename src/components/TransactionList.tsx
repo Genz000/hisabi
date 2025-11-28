@@ -50,8 +50,8 @@ export const TransactionList = ({
   return <Card className="px-[10px]">
       <CardHeader className="pb-3">
         <CardTitle className="text-lg mb-3">Recent Transactions</CardTitle>
-        <div className="flex flex-col sm:flex-row gap-2">
-          <div className="flex-1">
+        <div className="flex flex-col sm:flex-row gap-2 sm:justify-between">
+          <div>
             <Tabs value={typeFilter} onValueChange={handleTypeFilterChange}>
               <TabsList className="grid w-full grid-cols-3">
                 <TabsTrigger value="all">All</TabsTrigger>
@@ -60,7 +60,7 @@ export const TransactionList = ({
               </TabsList>
             </Tabs>
           </div>
-          <div className="flex-1">
+          <div className="sm:w-[200px]">
             <Select value={categoryFilter} onValueChange={handleCategoryFilterChange}>
               <SelectTrigger>
                 <SelectValue placeholder="All Categories" />
