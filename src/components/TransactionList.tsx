@@ -19,36 +19,34 @@ export const TransactionList = ({
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 15;
-  
+
   // Filter transactions
   const filteredTransactions = transactions.filter(transaction => {
     const matchesType = typeFilter === "all" || transaction.type === typeFilter;
     const matchesCategory = categoryFilter === "all" || transaction.category === categoryFilter;
     return matchesType && matchesCategory;
   });
-  
+
   // Get unique categories from all transactions
   const allCategories = Array.from(new Set(transactions.map(t => t.category))).sort();
-  
+
   // Pagination calculations
   const totalPages = Math.ceil(filteredTransactions.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
   const paginatedTransactions = filteredTransactions.slice(startIndex, endIndex);
-  
+
   // Reset to page 1 when filters change
   const handleTypeFilterChange = (value: "all" | "expense" | "income") => {
     setTypeFilter(value);
     setCurrentPage(1);
   };
-  
   const handleCategoryFilterChange = (value: string) => {
     setCategoryFilter(value);
     setCurrentPage(1);
   };
-  
   return <Card className="px-[10px]">
-      <CardHeader className="pb-3">
+      <CardHeader className="pt-0 pb-[26px]">
         <CardTitle className="text-lg mb-3">Recent Transactions</CardTitle>
         <div className="flex flex-col sm:flex-row gap-2 sm:justify-between">
           <div>
@@ -67,11 +65,9 @@ export const TransactionList = ({
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Categories</SelectItem>
-                {allCategories.map((category) => (
-                  <SelectItem key={category} value={category}>
+                {allCategories.map(category => <SelectItem key={category} value={category}>
                     {category}
-                  </SelectItem>
-                ))}
+                  </SelectItem>)}
               </SelectContent>
             </Select>
           </div>
@@ -114,59 +110,40 @@ export const TransactionList = ({
               </div>)}
         </div>
         
-        {filteredTransactions.length > itemsPerPage && (
-          <div className="flex items-center justify-between mt-4 pt-4 border-t">
+        {filteredTransactions.length > itemsPerPage && <div className="flex items-center justify-between mt-4 pt-4 border-t">
             <p className="text-sm text-muted-foreground">
               Showing {startIndex + 1}-{Math.min(endIndex, filteredTransactions.length)} of {filteredTransactions.length}
             </p>
             <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                disabled={currentPage === 1}
-              >
+              <Button variant="outline" size="sm" onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1}>
                 <ChevronLeft className="h-4 w-4" />
                 Previous
               </Button>
               <div className="flex items-center gap-1">
-                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                  let pageNumber;
-                  if (totalPages <= 5) {
-                    pageNumber = i + 1;
-                  } else if (currentPage <= 3) {
-                    pageNumber = i + 1;
-                  } else if (currentPage >= totalPages - 2) {
-                    pageNumber = totalPages - 4 + i;
-                  } else {
-                    pageNumber = currentPage - 2 + i;
-                  }
-                  
-                  return (
-                    <Button
-                      key={pageNumber}
-                      variant={currentPage === pageNumber ? "default" : "outline"}
-                      size="sm"
-                      className="w-9 h-9 p-0"
-                      onClick={() => setCurrentPage(pageNumber)}
-                    >
+                {Array.from({
+              length: Math.min(5, totalPages)
+            }, (_, i) => {
+              let pageNumber;
+              if (totalPages <= 5) {
+                pageNumber = i + 1;
+              } else if (currentPage <= 3) {
+                pageNumber = i + 1;
+              } else if (currentPage >= totalPages - 2) {
+                pageNumber = totalPages - 4 + i;
+              } else {
+                pageNumber = currentPage - 2 + i;
+              }
+              return <Button key={pageNumber} variant={currentPage === pageNumber ? "default" : "outline"} size="sm" className="w-9 h-9 p-0" onClick={() => setCurrentPage(pageNumber)}>
                       {pageNumber}
-                    </Button>
-                  );
-                })}
+                    </Button>;
+            })}
               </div>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                disabled={currentPage === totalPages}
-              >
+              <Button variant="outline" size="sm" onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages}>
                 Next
                 <ChevronRight className="h-4 w-4" />
               </Button>
             </div>
-          </div>
-        )}
+          </div>}
       </CardContent>
     </Card>;
 };
