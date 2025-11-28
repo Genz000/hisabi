@@ -57,7 +57,7 @@ export const CategoryBreakdown = ({
             No expense data available
           </div> : <>
             <ResponsiveContainer width="100%" height={200}>
-              <PieChart>
+              <PieChart className="pt-0 mt-[20px]">
                 <Pie data={chartData} cx="50%" cy="50%" labelLine={false} label={({
               name,
               percent
