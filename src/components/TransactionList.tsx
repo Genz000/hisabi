@@ -46,7 +46,7 @@ export const TransactionList = ({
     setCurrentPage(1);
   };
   return <Card className="px-[10px]">
-      <CardHeader className="pb-[26px] pt-[18px]">
+      <CardHeader className="pb-[26px] pt-[20px]">
         <CardTitle className="text-lg mb-3">Recent Transactions</CardTitle>
         <div className="flex flex-col sm:flex-row gap-2 sm:justify-between">
           <div>
