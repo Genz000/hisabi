@@ -2,7 +2,9 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus, TrendingUp, TrendingDown, Wallet, LogOut } from "lucide-react";
+import { Plus, TrendingUp, TrendingDown, Wallet, LogOut, Filter } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TransactionForm } from "@/components/TransactionForm";
 import { TransactionList } from "@/components/TransactionList";
 import { SpendingChart } from "@/components/SpendingChart";
@@ -29,6 +31,8 @@ const Index = () => {
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
+  const [typeFilter, setTypeFilter] = useState<"all" | "expense" | "income">("all");
+  const [categoryFilter, setCategoryFilter] = useState<string>("all");
   useEffect(() => {
     // Set up auth state listener
     const {
@@ -169,6 +173,17 @@ const Index = () => {
     setShowForm(false);
     setEditingTransaction(null);
   };
+  
+  // Filter transactions
+  const filteredTransactions = transactions.filter(transaction => {
+    const matchesType = typeFilter === "all" || transaction.type === typeFilter;
+    const matchesCategory = categoryFilter === "all" || transaction.category === categoryFilter;
+    return matchesType && matchesCategory;
+  });
+  
+  // Get unique categories from all transactions
+  const allCategories = Array.from(new Set(transactions.map(t => t.category))).sort();
+  
   const handleLogout = async () => {
     await supabase.auth.signOut();
     navigate("/auth");
@@ -276,8 +291,45 @@ const Index = () => {
           <CategoryBreakdown transactions={transactions} />
         </div>
 
+        <Card className="mb-4">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-lg flex items-center gap-2">
+              <Filter className="h-4 w-4" />
+              Filters
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-col sm:flex-row gap-3">
+              <div className="flex-1">
+                <Tabs value={typeFilter} onValueChange={(value) => setTypeFilter(value as "all" | "expense" | "income")}>
+                  <TabsList className="grid w-full grid-cols-3">
+                    <TabsTrigger value="all">All</TabsTrigger>
+                    <TabsTrigger value="expense">Expenses</TabsTrigger>
+                    <TabsTrigger value="income">Income</TabsTrigger>
+                  </TabsList>
+                </Tabs>
+              </div>
+              <div className="flex-1">
+                <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="All Categories" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Categories</SelectItem>
+                    {allCategories.map((category) => (
+                      <SelectItem key={category} value={category}>
+                        {category}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
         <TransactionList 
-          transactions={transactions} 
+          transactions={filteredTransactions} 
           onDelete={handleDeleteTransaction}
           onEdit={handleEditTransaction}
         />
