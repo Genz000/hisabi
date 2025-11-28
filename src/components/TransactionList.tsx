@@ -1,6 +1,9 @@
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Trash2, ArrowUpRight, ArrowDownRight, Pencil } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Transaction } from "@/pages/Index";
 interface TransactionListProps {
   transactions: Transaction[];
@@ -12,15 +15,54 @@ export const TransactionList = ({
   onDelete,
   onEdit
 }: TransactionListProps) => {
+  const [typeFilter, setTypeFilter] = useState<"all" | "expense" | "income">("all");
+  const [categoryFilter, setCategoryFilter] = useState<string>("all");
+  
+  // Filter transactions
+  const filteredTransactions = transactions.filter(transaction => {
+    const matchesType = typeFilter === "all" || transaction.type === typeFilter;
+    const matchesCategory = categoryFilter === "all" || transaction.category === categoryFilter;
+    return matchesType && matchesCategory;
+  });
+  
+  // Get unique categories from all transactions
+  const allCategories = Array.from(new Set(transactions.map(t => t.category))).sort();
+  
   return <Card className="px-[10px]">
       <CardHeader className="pb-3">
-        <CardTitle className="text-lg">Recent Transactions</CardTitle>
+        <CardTitle className="text-lg mb-3">Recent Transactions</CardTitle>
+        <div className="flex flex-col sm:flex-row gap-2">
+          <div className="flex-1">
+            <Tabs value={typeFilter} onValueChange={(value) => setTypeFilter(value as "all" | "expense" | "income")}>
+              <TabsList className="grid w-full grid-cols-3">
+                <TabsTrigger value="all">All</TabsTrigger>
+                <TabsTrigger value="expense">Expenses</TabsTrigger>
+                <TabsTrigger value="income">Income</TabsTrigger>
+              </TabsList>
+            </Tabs>
+          </div>
+          <div className="flex-1">
+            <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+              <SelectTrigger>
+                <SelectValue placeholder="All Categories" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Categories</SelectItem>
+                {allCategories.map((category) => (
+                  <SelectItem key={category} value={category}>
+                    {category}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
       </CardHeader>
       <CardContent>
         <div className="space-y-2">
-          {transactions.length === 0 ? <p className="text-center text-muted-foreground py-8">
-              No transactions yet. Add your first transaction to get started!
-            </p> : transactions.map(transaction => <div key={transaction.id} className="flex items-center justify-between p-3 rounded-lg border bg-card hover:bg-accent/5 transition-colors">
+          {filteredTransactions.length === 0 ? <p className="text-center text-muted-foreground py-8">
+              No transactions found. {transactions.length === 0 ? "Add your first transaction to get started!" : "Try adjusting your filters."}
+            </p> : filteredTransactions.map(transaction => <div key={transaction.id} className="flex items-center justify-between p-3 rounded-lg border bg-card hover:bg-accent/5 transition-colors">
                 <div className="flex items-center gap-3 flex-1 min-w-0">
                   <div className={`p-1.5 rounded-full shrink-0 ${transaction.type === "expense" ? "bg-destructive/10 text-destructive" : "bg-success/10 text-success"}`}>
                     {transaction.type === "expense" ? <ArrowDownRight className="h-3.5 w-3.5" /> : <ArrowUpRight className="h-3.5 w-3.5" />}
