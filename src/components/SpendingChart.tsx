@@ -68,7 +68,7 @@ export const SpendingChart = ({
           </RadioGroup>
         </div>
       </CardHeader>
-      <CardContent className="flex justify-center">
+      <CardContent className="flex-row my-0 flex items-center justify-start py-[83px]">
         <ResponsiveContainer width="100%" height={200}>
           <LineChart data={chartData} className="mr-0 pl-0 pr-[30px] pt-[10px]">
             <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
