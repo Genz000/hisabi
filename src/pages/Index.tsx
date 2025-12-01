@@ -2,14 +2,17 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus, TrendingUp, TrendingDown, Wallet, LogOut, ArrowUpDown } from "lucide-react";
+import { Plus, TrendingUp, TrendingDown, Wallet, LogOut, ArrowUpDown, User as UserIcon, Settings, Image } from "lucide-react";
 import { TransactionForm } from "@/components/TransactionForm";
 import { TransactionList } from "@/components/TransactionList";
 import { SpendingChart } from "@/components/SpendingChart";
 import { CategoryBreakdown } from "@/components/CategoryBreakdown";
+import { ExpenseLimitModal } from "@/components/ExpenseLimitModal";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import type { User, Session } from "@supabase/supabase-js";
@@ -31,6 +34,8 @@ const Index = () => {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
   const [currency, setCurrency] = useState<string>("$");
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [showExpenseLimitModal, setShowExpenseLimitModal] = useState(false);
   useEffect(() => {
     // Set up auth state listener
     const {
@@ -62,8 +67,25 @@ const Index = () => {
   useEffect(() => {
     if (user) {
       fetchTransactions();
+      fetchProfile();
     }
   }, [user]);
+
+  const fetchProfile = async () => {
+    if (!user) return;
+    try {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("avatar_url")
+        .eq("user_id", user.id)
+        .single();
+
+      if (error && error.code !== "PGRST116") throw error;
+      setAvatarUrl(data?.avatar_url || null);
+    } catch (error: any) {
+      console.error("Failed to fetch profile:", error);
+    }
+  };
   const fetchTransactions = async () => {
     try {
       const {
@@ -177,6 +199,47 @@ const Index = () => {
     await supabase.auth.signOut();
     navigate("/auth");
   };
+
+  const handleAvatarUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file || !user) return;
+
+    try {
+      const fileExt = file.name.split(".").pop();
+      const filePath = `${user.id}/avatar.${fileExt}`;
+
+      // Delete old avatar if exists
+      if (avatarUrl) {
+        const oldPath = avatarUrl.split("/").pop();
+        await supabase.storage.from("avatars").remove([`${user.id}/${oldPath}`]);
+      }
+
+      // Upload new avatar
+      const { error: uploadError } = await supabase.storage
+        .from("avatars")
+        .upload(filePath, file, { upsert: true });
+
+      if (uploadError) throw uploadError;
+
+      // Get public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from("avatars")
+        .getPublicUrl(filePath);
+
+      // Update profile
+      const { error: updateError } = await supabase
+        .from("profiles")
+        .upsert({ user_id: user.id, avatar_url: publicUrl });
+
+      if (updateError) throw updateError;
+
+      setAvatarUrl(publicUrl);
+      toast.success("Profile picture updated!");
+    } catch (error: any) {
+      toast.error("Failed to upload avatar");
+      console.error(error);
+    }
+  };
   if (loading) {
     return <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
@@ -232,9 +295,42 @@ const Index = () => {
                   />
                 </DialogContent>
               </Dialog>
-              <Button onClick={handleLogout} size="sm" variant="destructive">
-                <LogOut className="h-4 w-4" />
-              </Button>
+              
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="sm" className="relative h-9 w-9 rounded-full">
+                    <Avatar className="h-9 w-9">
+                      <AvatarImage src={avatarUrl || undefined} alt="User avatar" />
+                      <AvatarFallback>
+                        <UserIcon className="h-5 w-5" />
+                      </AvatarFallback>
+                    </Avatar>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  <DropdownMenuItem onClick={() => setShowExpenseLimitModal(true)}>
+                    <Settings className="mr-2 h-4 w-4" />
+                    Expenses Limit
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <label className="cursor-pointer flex items-center">
+                      <Image className="mr-2 h-4 w-4" />
+                      Edit Profile Picture
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={handleAvatarUpload}
+                      />
+                    </label>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleLogout} className="text-destructive focus:text-destructive">
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Log Out
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </div>
         </header>
@@ -315,6 +411,12 @@ const Index = () => {
           onEdit={handleEditTransaction}
         />
       </div>
+
+      <ExpenseLimitModal
+        open={showExpenseLimitModal}
+        onOpenChange={setShowExpenseLimitModal}
+        userId={user.id}
+      />
     </div>;
 };
 export default Index;
