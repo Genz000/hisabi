@@ -51,7 +51,7 @@ export default function Auth() {
       <Card className="w-full max-w-md border-solid mx-0 px-[30px] py-[25px] shadow-sm bg-white border-slate-200 border rounded-2xl">
         <CardHeader className="space-y-1 text-center">
           <div className="flex justify-center mb-2">
-            <img src={logo} alt="Finance Tracker Logo" className="w-16 h-16" />
+            <img alt="Finance Tracker Logo" className="w-16 h-16" src="/lovable-uploads/8e586378-c240-4f16-88ff-d053e064bc35.png" />
           </div>
           <CardTitle className="text-2xl">Finance Tracker</CardTitle>
           <CardDescription>
