@@ -2,13 +2,14 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus, TrendingUp, TrendingDown, Wallet, LogOut } from "lucide-react";
+import { Plus, TrendingUp, TrendingDown, Wallet, LogOut, ArrowUpDown } from "lucide-react";
 import { TransactionForm } from "@/components/TransactionForm";
 import { TransactionList } from "@/components/TransactionList";
 import { SpendingChart } from "@/components/SpendingChart";
 import { CategoryBreakdown } from "@/components/CategoryBreakdown";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import type { User, Session } from "@supabase/supabase-js";
@@ -29,6 +30,7 @@ const Index = () => {
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
+  const [currency, setCurrency] = useState<string>("$");
   useEffect(() => {
     // Set up auth state listener
     const {
@@ -90,6 +92,7 @@ const Index = () => {
   const totalExpenses = transactions.filter(t => t.type === "expense").reduce((sum, t) => sum + t.amount, 0);
   const totalIncome = transactions.filter(t => t.type === "income").reduce((sum, t) => sum + t.amount, 0);
   const currentBalance = startingBalance + totalIncome - totalExpenses;
+  const balanceChange = currentBalance - startingBalance;
   const handleAddTransaction = async (transaction: Omit<Transaction, "id">) => {
     if (!user) return;
     
@@ -193,7 +196,19 @@ const Index = () => {
               <img src={logo} alt="Finance Tracker Logo" className="h-12 w-30 object-fill" />
               
             </div>
-            <div className="flex gap-2">
+            <div className="flex gap-2 items-center">
+              <Select value={currency} onValueChange={setCurrency}>
+                <SelectTrigger className="w-[80px] h-9">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="$">USD</SelectItem>
+                  <SelectItem value="€">EUR</SelectItem>
+                  <SelectItem value="MAD">MAD</SelectItem>
+                  <SelectItem value="£">GBP</SelectItem>
+                  <SelectItem value="¥">JPY</SelectItem>
+                </SelectContent>
+              </Select>
               <Dialog open={showForm} onOpenChange={(open) => {
                 setShowForm(open);
                 if (!open) setEditingTransaction(null);
@@ -225,7 +240,7 @@ const Index = () => {
         </header>
         <Separator className="mb-4" />
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4 mt-[30px]">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 mb-4 mt-[30px]">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-2 pt-4">
               <CardTitle className="text-xs font-medium text-muted-foreground">
@@ -234,9 +249,9 @@ const Index = () => {
               <Wallet className="h-4 w-4 text-primary" />
             </CardHeader>
             <CardContent className="pb-4">
-              <div className="text-2xl font-bold text-foreground">${currentBalance.toLocaleString()}</div>
+              <div className="text-2xl font-bold text-foreground">{currency}{currentBalance.toLocaleString()}</div>
               <p className="text-xs text-muted-foreground mt-0.5">
-                From ${startingBalance.toLocaleString()} starting
+                From {currency}{startingBalance.toLocaleString()} starting
               </p>
             </CardContent>
           </Card>
@@ -249,7 +264,7 @@ const Index = () => {
               <TrendingDown className="h-4 w-4 text-destructive" />
             </CardHeader>
             <CardContent className="pb-4">
-              <div className="text-2xl font-bold text-destructive">${totalExpenses.toLocaleString()}</div>
+              <div className="text-2xl font-bold text-destructive">{currency}{totalExpenses.toLocaleString()}</div>
               <p className="text-xs text-muted-foreground mt-0.5">
                 {transactions.filter(t => t.type === "expense").length} transactions
               </p>
@@ -264,9 +279,26 @@ const Index = () => {
               <TrendingUp className="h-4 w-4 text-success" />
             </CardHeader>
             <CardContent className="pb-4">
-              <div className="text-2xl font-bold text-success">${totalIncome.toLocaleString()}</div>
+              <div className="text-2xl font-bold text-success">{currency}{totalIncome.toLocaleString()}</div>
               <p className="text-xs text-muted-foreground mt-0.5">
                 {transactions.filter(t => t.type === "income").length} transactions
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between pb-2 pt-4">
+              <CardTitle className="text-xs font-medium text-muted-foreground">
+                Balance Change
+              </CardTitle>
+              <ArrowUpDown className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent className="pb-4">
+              <div className={`text-2xl font-bold ${balanceChange >= 0 ? 'text-success' : 'text-destructive'}`}>
+                {balanceChange >= 0 ? '+' : ''}{currency}{balanceChange.toLocaleString()}
+              </div>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Net change from start
               </p>
             </CardContent>
           </Card>
