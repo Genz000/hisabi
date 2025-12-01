@@ -206,12 +206,19 @@ const Index = () => {
 
     try {
       const fileExt = file.name.split(".").pop();
-      const filePath = `${user.id}/avatar.${fileExt}`;
+      const timestamp = Date.now();
+      const filePath = `${user.id}/avatar-${timestamp}.${fileExt}`;
 
       // Delete old avatar if exists
       if (avatarUrl) {
-        const oldPath = avatarUrl.split("/").pop();
-        await supabase.storage.from("avatars").remove([`${user.id}/${oldPath}`]);
+        try {
+          const oldPathMatch = avatarUrl.match(/avatars\/(.+)$/);
+          if (oldPathMatch) {
+            await supabase.storage.from("avatars").remove([oldPathMatch[1]]);
+          }
+        } catch (e) {
+          console.log("Could not delete old avatar:", e);
+        }
       }
 
       // Upload new avatar
@@ -221,24 +228,32 @@ const Index = () => {
 
       if (uploadError) throw uploadError;
 
-      // Get public URL
+      // Get public URL with cache busting
       const { data: { publicUrl } } = supabase.storage
         .from("avatars")
         .getPublicUrl(filePath);
 
-      // Update profile
+      const urlWithCacheBust = `${publicUrl}?t=${timestamp}`;
+
+      // Update or insert profile
       const { error: updateError } = await supabase
         .from("profiles")
-        .upsert({ user_id: user.id, avatar_url: publicUrl });
+        .upsert(
+          { user_id: user.id, avatar_url: urlWithCacheBust },
+          { onConflict: "user_id" }
+        );
 
       if (updateError) throw updateError;
 
-      setAvatarUrl(publicUrl);
+      setAvatarUrl(urlWithCacheBust);
       toast.success("Profile picture updated!");
     } catch (error: any) {
       toast.error("Failed to upload avatar");
       console.error(error);
     }
+
+    // Reset input
+    event.target.value = "";
   };
   if (loading) {
     return <div className="min-h-screen bg-background flex items-center justify-center">
