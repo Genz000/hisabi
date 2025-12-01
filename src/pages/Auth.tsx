@@ -53,7 +53,7 @@ export default function Auth() {
           <div className="flex justify-center mb-2">
             <img alt="Finance Tracker Logo" className="w-16 h-16" src="/lovable-uploads/8e586378-c240-4f16-88ff-d053e064bc35.png" />
           </div>
-          <CardTitle className="text-2xl">Finance Tracker</CardTitle>
+          <CardTitle className="text-2xl">Hisabi App</CardTitle>
           <CardDescription>
             {isLogin ? "Sign in to your account" : "Create a new account"}
           </CardDescription>
