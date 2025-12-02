@@ -13,15 +13,17 @@ interface ExpenseLimitModalProps {
 }
 
 const CATEGORIES = [
-  "Food & Dining",
+  "Food",
+  "Sport",
+  "Health/medical",
+  "Home",
   "Transportation",
-  "Shopping",
-  "Entertainment",
-  "Bills & Utilities",
-  "Healthcare",
-  "Education",
+  "Hajar",
+  "Gifts",
+  "Utilities",
   "Travel",
-  "Other"
+  "Others",
+  "Nader",
 ];
 
 export function ExpenseLimitModal({ open, onOpenChange, userId }: ExpenseLimitModalProps) {
