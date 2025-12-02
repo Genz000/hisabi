@@ -390,7 +390,7 @@ const Index = () => {
               <CardTitle className="text-xs font-medium text-muted-foreground">
                 Balance Change
               </CardTitle>
-              <ArrowUpDown className="h-4 w-4 text-muted-foreground" />
+              <ArrowUpDown className="h-4 w-4 text-muted-foreground " />
             </CardHeader>
             <CardContent className="pb-4">
               <div className={`text-2xl font-bold ${balanceChange >= 0 ? 'text-success' : 'text-destructive'}`}>
