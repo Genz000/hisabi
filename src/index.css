@@ -29,7 +29,7 @@ All colors MUST be HSL.
     --muted: 160 30% 96%;
     --muted-foreground: 160 10% 45%;
 
-    --accent: 199 88.664% 48.4314%;
+    --accent: 211 100% 50%;
     --accent-foreground: 0 0% 100%;
 
     --success: 142 76% 36%;
@@ -40,7 +40,7 @@ All colors MUST be HSL.
 
     --border: 160 20% 90%;
     --input: 160 20% 90%;
-    --ring: 211 100% 50%;
+    --ring: 200 98.01% 39.4118%;
 
     --radius: 0.7rem;
 
