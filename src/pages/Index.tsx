@@ -400,7 +400,7 @@ const Index = () => {
         <Separator className="mb-4" />
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3 mb-4 mt-[30px]">
-          <Card>
+        <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-2 pt-4">
               <CardTitle className="text-xs font-medium text-muted-foreground">
                 Current Balance
@@ -411,6 +411,23 @@ const Index = () => {
               <div className="text-2xl font-bold text-foreground">{currency}{currentBalance.toLocaleString()}</div>
               <p className="text-xs text-muted-foreground mt-0.5">
                 From {currency}{startingBalance.toLocaleString()} starting
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between pb-2 pt-4">
+              <CardTitle className="text-xs font-medium text-muted-foreground">
+                Balance Change
+              </CardTitle>
+              <ArrowUpDown className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent className="pb-4">
+              <div className={`text-2xl font-bold ${balanceChange >= 0 ? 'text-success' : 'text-destructive'}`}>
+                {balanceChange >= 0 ? '+' : ''}{currency}{balanceChange.toLocaleString()}
+              </div>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Net change from start
               </p>
             </CardContent>
           </Card>
@@ -441,23 +458,6 @@ const Index = () => {
               <div className="text-2xl font-bold text-success">{currency}{monthlyIncome.toLocaleString()}</div>
               <p className="text-xs text-muted-foreground mt-0.5">
                 {transactions.filter(t => t.type === "income" && isCurrentMonth(t.date)).length} transactions
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between pb-2 pt-4">
-              <CardTitle className="text-xs font-medium text-muted-foreground">
-                Balance Change
-              </CardTitle>
-              <ArrowUpDown className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent className="pb-4">
-              <div className={`text-2xl font-bold ${balanceChange >= 0 ? 'text-success' : 'text-destructive'}`}>
-                {balanceChange >= 0 ? '+' : ''}{currency}{balanceChange.toLocaleString()}
-              </div>
-              <p className="text-xs text-muted-foreground mt-0.5">
-                Net change from start
               </p>
             </CardContent>
           </Card>
