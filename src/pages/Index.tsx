@@ -8,6 +8,7 @@ import { TransactionList } from "@/components/TransactionList";
 import { SpendingChart } from "@/components/SpendingChart";
 import { CategoryBreakdown } from "@/components/CategoryBreakdown";
 import { ExpenseLimitModal } from "@/components/ExpenseLimitModal";
+import { AvatarCropperModal } from "@/components/AvatarCropperModal";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -36,6 +37,8 @@ const Index = () => {
   const [currency, setCurrency] = useState<string>("$");
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [showExpenseLimitModal, setShowExpenseLimitModal] = useState(false);
+  const [showCropperModal, setShowCropperModal] = useState(false);
+  const [imageToCrop, setImageToCrop] = useState<string | null>(null);
   useEffect(() => {
     // Set up auth state listener
     const {
@@ -200,19 +203,30 @@ const Index = () => {
     navigate("/auth");
   };
 
-  const handleAvatarUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (!file || !user) return;
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      setImageToCrop(reader.result as string);
+      setShowCropperModal(true);
+    };
+    reader.readAsDataURL(file);
+    event.target.value = "";
+  };
+
+  const handleCroppedUpload = async (croppedBlob: Blob) => {
+    if (!user) return;
 
     try {
-      const fileExt = file.name.split(".").pop();
       const timestamp = Date.now();
-      const filePath = `${user.id}/avatar-${timestamp}.${fileExt}`;
+      const filePath = `${user.id}/avatar-${timestamp}.jpg`;
 
       // Delete old avatar if exists
       if (avatarUrl) {
         try {
-          const oldPathMatch = avatarUrl.match(/avatars\/(.+)$/);
+          const oldPathMatch = avatarUrl.match(/avatars\/(.+)\?/);
           if (oldPathMatch) {
             await supabase.storage.from("avatars").remove([oldPathMatch[1]]);
           }
@@ -221,10 +235,10 @@ const Index = () => {
         }
       }
 
-      // Upload new avatar
+      // Upload cropped avatar
       const { error: uploadError } = await supabase.storage
         .from("avatars")
-        .upload(filePath, file, { upsert: true });
+        .upload(filePath, croppedBlob, { upsert: true, contentType: "image/jpeg" });
 
       if (uploadError) throw uploadError;
 
@@ -251,9 +265,6 @@ const Index = () => {
       toast.error("Failed to upload avatar");
       console.error(error);
     }
-
-    // Reset input
-    event.target.value = "";
   };
   if (loading) {
     return <div className="min-h-screen bg-background flex items-center justify-center">
@@ -335,7 +346,7 @@ const Index = () => {
                         type="file"
                         accept="image/*"
                         className="hidden"
-                        onChange={handleAvatarUpload}
+                        onChange={handleFileSelect}
                       />
                     </label>
                   </DropdownMenuItem>
@@ -432,6 +443,18 @@ const Index = () => {
         onOpenChange={setShowExpenseLimitModal}
         userId={user.id}
       />
+
+      {imageToCrop && (
+        <AvatarCropperModal
+          open={showCropperModal}
+          onOpenChange={(open) => {
+            setShowCropperModal(open);
+            if (!open) setImageToCrop(null);
+          }}
+          imageSrc={imageToCrop}
+          onCropComplete={handleCroppedUpload}
+        />
+      )}
     </div>;
 };
 export default Index;
