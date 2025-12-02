@@ -10,6 +10,7 @@ interface ExpenseLimitModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   userId: string;
+  onSave?: () => void;
 }
 
 const CATEGORIES = [
@@ -26,7 +27,7 @@ const CATEGORIES = [
   "Nader",
 ];
 
-export function ExpenseLimitModal({ open, onOpenChange, userId }: ExpenseLimitModalProps) {
+export function ExpenseLimitModal({ open, onOpenChange, userId, onSave }: ExpenseLimitModalProps) {
   const [limits, setLimits] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
 
@@ -79,6 +80,7 @@ export function ExpenseLimitModal({ open, onOpenChange, userId }: ExpenseLimitMo
       if (error) throw error;
 
       toast.success("Expense limits saved!");
+      onSave?.();
       onOpenChange(false);
     } catch (error: any) {
       toast.error("Failed to save limits");

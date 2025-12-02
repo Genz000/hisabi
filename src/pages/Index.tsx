@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus, TrendingUp, TrendingDown, Wallet, LogOut, ArrowUpDown, User as UserIcon, Settings, Image } from "lucide-react";
+import { Plus, TrendingUp, TrendingDown, Wallet, LogOut, ArrowUpDown, User as UserIcon, Settings, Image, PiggyBank } from "lucide-react";
 import { TransactionForm } from "@/components/TransactionForm";
 import { TransactionList } from "@/components/TransactionList";
 import { SpendingChart } from "@/components/SpendingChart";
@@ -39,6 +39,7 @@ const Index = () => {
   const [showExpenseLimitModal, setShowExpenseLimitModal] = useState(false);
   const [showCropperModal, setShowCropperModal] = useState(false);
   const [imageToCrop, setImageToCrop] = useState<string | null>(null);
+  const [totalExpenseLimit, setTotalExpenseLimit] = useState<number>(0);
   useEffect(() => {
     // Set up auth state listener
     const {
@@ -71,8 +72,25 @@ const Index = () => {
     if (user) {
       fetchTransactions();
       fetchProfile();
+      fetchExpenseLimits();
     }
   }, [user]);
+
+  const fetchExpenseLimits = async () => {
+    if (!user) return;
+    try {
+      const { data, error } = await supabase
+        .from("expense_limits")
+        .select("limit_amount")
+        .eq("user_id", user.id);
+      
+      if (error) throw error;
+      const total = (data || []).reduce((sum, item) => sum + Number(item.limit_amount), 0);
+      setTotalExpenseLimit(total);
+    } catch (error: any) {
+      console.error("Failed to fetch expense limits:", error);
+    }
+  };
 
   const fetchProfile = async () => {
     if (!user) return;
@@ -118,6 +136,19 @@ const Index = () => {
   const totalIncome = transactions.filter(t => t.type === "income").reduce((sum, t) => sum + t.amount, 0);
   const currentBalance = startingBalance + totalIncome - totalExpenses;
   const balanceChange = currentBalance - startingBalance;
+  
+  // Calculate current month's expenses
+  const now = new Date();
+  const currentMonthExpenses = transactions
+    .filter(t => {
+      const txDate = new Date(t.date);
+      return t.type === "expense" && 
+        txDate.getMonth() === now.getMonth() && 
+        txDate.getFullYear() === now.getFullYear();
+    })
+    .reduce((sum, t) => sum + t.amount, 0);
+  
+  const monthlySavings = totalExpenseLimit - currentMonthExpenses;
   const handleAddTransaction = async (transaction: Omit<Transaction, "id">) => {
     if (!user) return;
     
@@ -362,7 +393,7 @@ const Index = () => {
         </header>
         <Separator className="mb-4" />
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 mb-4 mt-[30px]">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3 mb-4 mt-[30px]">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-2 pt-4">
               <CardTitle className="text-xs font-medium text-muted-foreground">
@@ -424,6 +455,23 @@ const Index = () => {
               </p>
             </CardContent>
           </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between pb-2 pt-4">
+              <CardTitle className="text-xs font-medium text-muted-foreground">
+                Monthly Savings
+              </CardTitle>
+              <PiggyBank className="h-4 w-4 text-primary" />
+            </CardHeader>
+            <CardContent className="pb-4">
+              <div className={`text-2xl font-bold ${monthlySavings >= 0 ? 'text-success' : 'text-destructive'}`}>
+                {monthlySavings >= 0 ? '+' : ''}{currency}{monthlySavings.toLocaleString()}
+              </div>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                {totalExpenseLimit > 0 ? 'vs budget limits' : 'Set limits first'}
+              </p>
+            </CardContent>
+          </Card>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 mb-4">
@@ -442,6 +490,7 @@ const Index = () => {
         open={showExpenseLimitModal}
         onOpenChange={setShowExpenseLimitModal}
         userId={user.id}
+        onSave={fetchExpenseLimits}
       />
 
       {imageToCrop && (
