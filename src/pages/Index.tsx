@@ -132,23 +132,29 @@ const Index = () => {
     }
   };
   const startingBalance = 99080;
-  const totalExpenses = transactions.filter(t => t.type === "expense").reduce((sum, t) => sum + t.amount, 0);
-  const totalIncome = transactions.filter(t => t.type === "income").reduce((sum, t) => sum + t.amount, 0);
-  const currentBalance = startingBalance + totalIncome - totalExpenses;
+  const now = new Date();
+  
+  // All-time calculations for Balance cards
+  const allTimeExpenses = transactions.filter(t => t.type === "expense").reduce((sum, t) => sum + t.amount, 0);
+  const allTimeIncome = transactions.filter(t => t.type === "income").reduce((sum, t) => sum + t.amount, 0);
+  const currentBalance = startingBalance + allTimeIncome - allTimeExpenses;
   const balanceChange = currentBalance - startingBalance;
   
-  // Calculate current month's expenses
-  const now = new Date();
-  const currentMonthExpenses = transactions
-    .filter(t => {
-      const txDate = new Date(t.date);
-      return t.type === "expense" && 
-        txDate.getMonth() === now.getMonth() && 
-        txDate.getFullYear() === now.getFullYear();
-    })
+  // Current month calculations for Income, Expenses, Savings cards
+  const isCurrentMonth = (date: string) => {
+    const txDate = new Date(date);
+    return txDate.getMonth() === now.getMonth() && txDate.getFullYear() === now.getFullYear();
+  };
+  
+  const monthlyExpenses = transactions
+    .filter(t => t.type === "expense" && isCurrentMonth(t.date))
     .reduce((sum, t) => sum + t.amount, 0);
   
-  const monthlySavings = totalExpenseLimit - currentMonthExpenses;
+  const monthlyIncome = transactions
+    .filter(t => t.type === "income" && isCurrentMonth(t.date))
+    .reduce((sum, t) => sum + t.amount, 0);
+  
+  const monthlySavings = totalExpenseLimit - monthlyExpenses;
   const handleAddTransaction = async (transaction: Omit<Transaction, "id">) => {
     if (!user) return;
     
@@ -412,14 +418,14 @@ const Index = () => {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-2 pt-4">
               <CardTitle className="text-xs font-medium text-muted-foreground">
-                Total Expenses
+                Monthly Expenses
               </CardTitle>
               <TrendingDown className="h-4 w-4 text-destructive" />
             </CardHeader>
             <CardContent className="pb-4">
-              <div className="text-2xl font-bold text-destructive">{currency}{totalExpenses.toLocaleString()}</div>
+              <div className="text-2xl font-bold text-destructive">{currency}{monthlyExpenses.toLocaleString()}</div>
               <p className="text-xs text-muted-foreground mt-0.5">
-                {transactions.filter(t => t.type === "expense").length} transactions
+                {transactions.filter(t => t.type === "expense" && isCurrentMonth(t.date)).length} transactions
               </p>
             </CardContent>
           </Card>
@@ -427,14 +433,14 @@ const Index = () => {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-2 pt-4">
               <CardTitle className="text-xs font-medium text-muted-foreground">
-                Total Income
+                Monthly Income
               </CardTitle>
               <TrendingUp className="h-4 w-4 text-success" />
             </CardHeader>
             <CardContent className="pb-4">
-              <div className="text-2xl font-bold text-success">{currency}{totalIncome.toLocaleString()}</div>
+              <div className="text-2xl font-bold text-success">{currency}{monthlyIncome.toLocaleString()}</div>
               <p className="text-xs text-muted-foreground mt-0.5">
-                {transactions.filter(t => t.type === "income").length} transactions
+                {transactions.filter(t => t.type === "income" && isCurrentMonth(t.date)).length} transactions
               </p>
             </CardContent>
           </Card>
