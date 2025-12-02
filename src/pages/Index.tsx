@@ -75,15 +75,13 @@ const Index = () => {
       fetchExpenseLimits();
     }
   }, [user]);
-
   const fetchExpenseLimits = async () => {
     if (!user) return;
     try {
-      const { data, error } = await supabase
-        .from("expense_limits")
-        .select("limit_amount")
-        .eq("user_id", user.id);
-      
+      const {
+        data,
+        error
+      } = await supabase.from("expense_limits").select("limit_amount").eq("user_id", user.id);
       if (error) throw error;
       const total = (data || []).reduce((sum, item) => sum + Number(item.limit_amount), 0);
       setTotalExpenseLimit(total);
@@ -91,16 +89,13 @@ const Index = () => {
       console.error("Failed to fetch expense limits:", error);
     }
   };
-
   const fetchProfile = async () => {
     if (!user) return;
     try {
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("avatar_url")
-        .eq("user_id", user.id)
-        .single();
-
+      const {
+        data,
+        error
+      } = await supabase.from("profiles").select("avatar_url").eq("user_id", user.id).single();
       if (error && error.code !== "PGRST116") throw error;
       setAvatarUrl(data?.avatar_url || null);
     } catch (error: any) {
@@ -133,49 +128,37 @@ const Index = () => {
   };
   const startingBalance = 99080;
   const now = new Date();
-  
+
   // All-time calculations for Balance cards
   const allTimeExpenses = transactions.filter(t => t.type === "expense").reduce((sum, t) => sum + t.amount, 0);
   const allTimeIncome = transactions.filter(t => t.type === "income").reduce((sum, t) => sum + t.amount, 0);
   const currentBalance = startingBalance + allTimeIncome - allTimeExpenses;
   const balanceChange = currentBalance - startingBalance;
-  
+
   // Current month calculations for Income, Expenses, Savings cards
   const isCurrentMonth = (date: string) => {
     const txDate = new Date(date);
     return txDate.getMonth() === now.getMonth() && txDate.getFullYear() === now.getFullYear();
   };
-  
-  const monthlyExpenses = transactions
-    .filter(t => t.type === "expense" && isCurrentMonth(t.date))
-    .reduce((sum, t) => sum + t.amount, 0);
-  
-  const monthlyIncome = transactions
-    .filter(t => t.type === "income" && isCurrentMonth(t.date))
-    .reduce((sum, t) => sum + t.amount, 0);
-  
+  const monthlyExpenses = transactions.filter(t => t.type === "expense" && isCurrentMonth(t.date)).reduce((sum, t) => sum + t.amount, 0);
+  const monthlyIncome = transactions.filter(t => t.type === "income" && isCurrentMonth(t.date)).reduce((sum, t) => sum + t.amount, 0);
   const monthlySavings = totalExpenseLimit - monthlyExpenses;
   const handleAddTransaction = async (transaction: Omit<Transaction, "id">) => {
     if (!user) return;
-    
     if (editingTransaction) {
       // Update existing transaction
       try {
-        const { error } = await supabase
-          .from("transactions")
-          .update({
-            ...transaction,
-            user_id: user.id
-          })
-          .eq("id", editingTransaction.id);
-        
+        const {
+          error
+        } = await supabase.from("transactions").update({
+          ...transaction,
+          user_id: user.id
+        }).eq("id", editingTransaction.id);
         if (error) throw error;
-        
-        setTransactions(transactions.map(t => 
-          t.id === editingTransaction.id 
-            ? { ...transaction, id: editingTransaction.id } 
-            : t
-        ));
+        setTransactions(transactions.map(t => t.id === editingTransaction.id ? {
+          ...transaction,
+          id: editingTransaction.id
+        } : t));
         setShowForm(false);
         setEditingTransaction(null);
         toast.success("Transaction updated!");
@@ -224,26 +207,21 @@ const Index = () => {
       console.error(error);
     }
   };
-  
   const handleEditTransaction = (transaction: Transaction) => {
     setEditingTransaction(transaction);
     setShowForm(true);
   };
-  
   const handleCancelForm = () => {
     setShowForm(false);
     setEditingTransaction(null);
   };
-  
   const handleLogout = async () => {
     await supabase.auth.signOut();
     navigate("/auth");
   };
-
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
-
     const reader = new FileReader();
     reader.onload = () => {
       setImageToCrop(reader.result as string);
@@ -252,10 +230,8 @@ const Index = () => {
     reader.readAsDataURL(file);
     event.target.value = "";
   };
-
   const handleCroppedUpload = async (croppedBlob: Blob) => {
     if (!user) return;
-
     try {
       const timestamp = Date.now();
       const filePath = `${user.id}/avatar-${timestamp}.jpg`;
@@ -273,29 +249,32 @@ const Index = () => {
       }
 
       // Upload cropped avatar
-      const { error: uploadError } = await supabase.storage
-        .from("avatars")
-        .upload(filePath, croppedBlob, { upsert: true, contentType: "image/jpeg" });
-
+      const {
+        error: uploadError
+      } = await supabase.storage.from("avatars").upload(filePath, croppedBlob, {
+        upsert: true,
+        contentType: "image/jpeg"
+      });
       if (uploadError) throw uploadError;
 
       // Get public URL with cache busting
-      const { data: { publicUrl } } = supabase.storage
-        .from("avatars")
-        .getPublicUrl(filePath);
-
+      const {
+        data: {
+          publicUrl
+        }
+      } = supabase.storage.from("avatars").getPublicUrl(filePath);
       const urlWithCacheBust = `${publicUrl}?t=${timestamp}`;
 
       // Update or insert profile
-      const { error: updateError } = await supabase
-        .from("profiles")
-        .upsert(
-          { user_id: user.id, avatar_url: urlWithCacheBust },
-          { onConflict: "user_id" }
-        );
-
+      const {
+        error: updateError
+      } = await supabase.from("profiles").upsert({
+        user_id: user.id,
+        avatar_url: urlWithCacheBust
+      }, {
+        onConflict: "user_id"
+      });
       if (updateError) throw updateError;
-
       setAvatarUrl(urlWithCacheBust);
       toast.success("Profile picture updated!");
     } catch (error: any) {
@@ -335,10 +314,10 @@ const Index = () => {
                   <SelectItem value="¥">JPY</SelectItem>
                 </SelectContent>
               </Select>
-              <Dialog open={showForm} onOpenChange={(open) => {
-                setShowForm(open);
-                if (!open) setEditingTransaction(null);
-              }}>
+              <Dialog open={showForm} onOpenChange={open => {
+              setShowForm(open);
+              if (!open) setEditingTransaction(null);
+            }}>
                 <DialogTrigger asChild>
                   <Button size="sm" className="gap-2">
                     <Plus className="h-4 w-4" />
@@ -351,11 +330,7 @@ const Index = () => {
                       {editingTransaction ? "Edit Transaction" : "New Transaction"}
                     </DialogTitle>
                   </DialogHeader>
-                  <TransactionForm 
-                    onSubmit={handleAddTransaction} 
-                    onCancel={handleCancelForm}
-                    initialData={editingTransaction || undefined}
-                  />
+                  <TransactionForm onSubmit={handleAddTransaction} onCancel={handleCancelForm} initialData={editingTransaction || undefined} />
                 </DialogContent>
               </Dialog>
               
@@ -379,12 +354,7 @@ const Index = () => {
                     <label className="cursor-pointer flex items-center">
                       <Image className="mr-2 h-4 w-4" />
                       Edit Profile Picture
-                      <input
-                        type="file"
-                        accept="image/*"
-                        className="hidden"
-                        onChange={handleFileSelect}
-                      />
+                      <input type="file" accept="image/*" className="hidden" onChange={handleFileSelect} />
                     </label>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
@@ -405,7 +375,7 @@ const Index = () => {
               <CardTitle className="text-xs font-medium text-muted-foreground">
                 Current Balance
               </CardTitle>
-              <Wallet className="h-4 w-4 text-primary" />
+              <Wallet className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent className="pb-4">
               <div className="text-2xl font-bold text-foreground">{currency}{currentBalance.toLocaleString()}</div>
@@ -485,31 +455,15 @@ const Index = () => {
           <CategoryBreakdown transactions={transactions} />
         </div>
 
-        <TransactionList 
-          transactions={transactions} 
-          onDelete={handleDeleteTransaction}
-          onEdit={handleEditTransaction}
-        />
+        <TransactionList transactions={transactions} onDelete={handleDeleteTransaction} onEdit={handleEditTransaction} />
       </div>
 
-      <ExpenseLimitModal
-        open={showExpenseLimitModal}
-        onOpenChange={setShowExpenseLimitModal}
-        userId={user.id}
-        onSave={fetchExpenseLimits}
-      />
+      <ExpenseLimitModal open={showExpenseLimitModal} onOpenChange={setShowExpenseLimitModal} userId={user.id} onSave={fetchExpenseLimits} />
 
-      {imageToCrop && (
-        <AvatarCropperModal
-          open={showCropperModal}
-          onOpenChange={(open) => {
-            setShowCropperModal(open);
-            if (!open) setImageToCrop(null);
-          }}
-          imageSrc={imageToCrop}
-          onCropComplete={handleCroppedUpload}
-        />
-      )}
+      {imageToCrop && <AvatarCropperModal open={showCropperModal} onOpenChange={open => {
+      setShowCropperModal(open);
+      if (!open) setImageToCrop(null);
+    }} imageSrc={imageToCrop} onCropComplete={handleCroppedUpload} />}
     </div>;
 };
 export default Index;
