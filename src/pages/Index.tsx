@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus, TrendingUp, TrendingDown, Wallet, LogOut, ArrowUpDown, User as UserIcon, Settings, Image, PiggyBank } from "lucide-react";
+import { Plus, TrendingUp, TrendingDown, Wallet, LogOut, ArrowUpDown, User as UserIcon, Settings, Image, PiggyBank, Loader2 } from "lucide-react";
 import { TransactionForm } from "@/components/TransactionForm";
 import { TransactionList } from "@/components/TransactionList";
 import { SpendingChart } from "@/components/SpendingChart";
@@ -40,6 +40,7 @@ const Index = () => {
   const [showCropperModal, setShowCropperModal] = useState(false);
   const [imageToCrop, setImageToCrop] = useState<string | null>(null);
   const [totalExpenseLimit, setTotalExpenseLimit] = useState<number>(0);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
   useEffect(() => {
     // Set up auth state listener
     const {
@@ -232,6 +233,7 @@ const Index = () => {
   };
   const handleCroppedUpload = async (croppedBlob: Blob) => {
     if (!user) return;
+    setUploadingAvatar(true);
     try {
       const timestamp = Date.now();
       const filePath = `${user.id}/avatar-${timestamp}.jpg`;
@@ -280,6 +282,8 @@ const Index = () => {
     } catch (error: any) {
       toast.error("Failed to upload avatar");
       console.error(error);
+    } finally {
+      setUploadingAvatar(false);
     }
   };
   if (loading) {
@@ -338,10 +342,18 @@ const Index = () => {
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" size="sm" className="relative h-9 w-9 rounded-full">
                     <Avatar className="h-9 w-9">
-                      <AvatarImage src={avatarUrl || undefined} alt="User avatar" />
-                      <AvatarFallback>
-                        <UserIcon className="h-5 w-5" />
-                      </AvatarFallback>
+                      {uploadingAvatar ? (
+                        <AvatarFallback>
+                          <Loader2 className="h-5 w-5 animate-spin" />
+                        </AvatarFallback>
+                      ) : (
+                        <>
+                          <AvatarImage src={avatarUrl || undefined} alt="User avatar" />
+                          <AvatarFallback>
+                            <UserIcon className="h-5 w-5" />
+                          </AvatarFallback>
+                        </>
+                      )}
                     </Avatar>
                   </Button>
                 </DropdownMenuTrigger>
