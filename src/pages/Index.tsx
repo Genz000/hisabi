@@ -95,8 +95,8 @@ const Index = () => {
       const {
         data,
         error
-      } = await supabase.from("profiles").select("avatar_url").eq("user_id", user.id).single();
-      if (error && error.code !== "PGRST116") throw error;
+      } = await supabase.from("profiles").select("avatar_url").eq("user_id", user.id).maybeSingle();
+      if (error) throw error;
       setAvatarUrl(data?.avatar_url || null);
     } catch (error: any) {
       console.error("Failed to fetch profile:", error);
