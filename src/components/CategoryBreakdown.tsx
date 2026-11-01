@@ -42,15 +42,15 @@ export const CategoryBreakdown = ({
   return <Card className="rounded-3xl border-0 shadow-[0_2px_12px_-4px_hsl(var(--foreground)/0.12)]">
       <CardHeader className="pb-3">
         <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
-          <CardTitle className="font-display text-lg">Spending by Category</CardTitle>
+          <CardTitle className="type-title">Spending by Category</CardTitle>
           <RadioGroup value={viewMode} onValueChange={value => setViewMode(value as ViewMode)} className="flex gap-3">
             <div className="flex items-center gap-1.5">
               <RadioGroupItem value="daily" id="daily-category" />
-              <Label htmlFor="daily-category" className="text-xs cursor-pointer">This month</Label>
+              <Label htmlFor="daily-category" className="cursor-pointer text-[0.8125rem] font-medium">This month</Label>
             </div>
             <div className="flex items-center gap-1.5">
               <RadioGroupItem value="monthly" id="monthly-category" />
-              <Label htmlFor="monthly-category" className="text-xs cursor-pointer">All time</Label>
+              <Label htmlFor="monthly-category" className="cursor-pointer text-[0.8125rem] font-medium">All time</Label>
             </div>
           </RadioGroup>
         </div>

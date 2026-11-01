@@ -3,6 +3,7 @@ import { format, parseISO, subDays } from "date-fns";
 import { CloudOff } from "lucide-react";
 import { CategoryBadge } from "@/components/CategoryIcon";
 import { WeeklyRecap } from "@/components/WeeklyRecap";
+import { Money } from "@/components/Money";
 import { SpendingChart } from "@/components/SpendingChart";
 import { CategoryBreakdown } from "@/components/CategoryBreakdown";
 import { TransactionSheet } from "./TransactionSheet";
@@ -48,18 +49,22 @@ export const HistoryView = () => {
   return (
     <div className="h-full overflow-y-auto px-4 pb-8 pt-2">
       <section className="px-1">
-        <p className="text-sm text-muted-foreground">Balance</p>
-        <p className={cn("font-display text-5xl font-semibold tracking-tight tabular", balance < 0 && "text-destructive")}>
-          {formatMoney(balance, currency)}
+        <p className="type-meta px-1">Balance</p>
+        <p className={cn("type-screen mt-1 px-1", balance < 0 && "text-destructive")}>
+          <Money value={balance} currency={currency} />
         </p>
         <dl className="mt-3 grid grid-cols-2 gap-2">
           <div className="rounded-3xl bg-card px-4 py-3 shadow-[0_2px_12px_-4px_hsl(var(--foreground)/0.12)]">
-            <dt className="text-sm text-muted-foreground">Spent in {format(new Date(), "MMMM")}</dt>
-            <dd className="font-display text-xl font-semibold tabular">{formatMoney(out, currency)}</dd>
+            <dt className="type-meta">Spent in {format(new Date(), "MMMM")}</dt>
+            <dd className="type-stat mt-1">
+              <Money value={out} currency={currency} />
+            </dd>
           </div>
           <div className="rounded-3xl bg-card px-4 py-3 shadow-[0_2px_12px_-4px_hsl(var(--foreground)/0.12)]">
-            <dt className="text-sm text-muted-foreground">Received</dt>
-            <dd className="font-display text-xl font-semibold text-success tabular">{formatMoney(inc, currency)}</dd>
+            <dt className="type-meta">Received</dt>
+            <dd className="type-stat mt-1 text-success">
+              <Money value={inc} currency={currency} />
+            </dd>
           </div>
         </dl>
       </section>
@@ -70,7 +75,7 @@ export const HistoryView = () => {
         </div>
       )}
 
-      <div className="mt-6 flex rounded-full bg-muted p-1 text-sm" role="tablist" aria-label="Show">
+      <div className="mt-8 flex rounded-full bg-muted p-1" role="tablist" aria-label="Show">
         {(
           [
             ["all", "All"],
@@ -87,7 +92,7 @@ export const HistoryView = () => {
               setShown(PAGE);
             }}
             className={cn(
-              "flex-1 rounded-full py-1.5 font-medium transition-colors",
+              "type-label flex-1 rounded-full py-2 transition-colors",
               filter === key ? "bg-card text-foreground shadow-sm" : "text-muted-foreground",
             )}
           >
@@ -104,9 +109,9 @@ export const HistoryView = () => {
         days.map((day) => (
           <section key={day.date} className="mt-5">
             <div className="flex items-baseline justify-between px-1">
-              <h2 className="font-semibold">{dayTitle(day.date)}</h2>
+              <h2 className="type-label">{dayTitle(day.date)}</h2>
               {day.total > 0 && (
-                <span className="text-sm text-muted-foreground tabular">{formatMoney(day.total, currency)}</span>
+                <span className="type-meta tabular">{formatMoney(day.total, currency)}</span>
               )}
             </div>
             <ul className="mt-2 divide-y divide-border overflow-hidden rounded-3xl bg-card shadow-[0_2px_12px_-4px_hsl(var(--foreground)/0.12)]">
@@ -123,14 +128,16 @@ export const HistoryView = () => {
                       size="sm"
                     />
                     <div className="min-w-0 flex-1">
-                      <p className="truncate font-medium">{t.category}</p>
-                      {t.description && <p className="truncate text-sm text-muted-foreground">{t.description}</p>}
+                      <p className="type-item truncate">{t.category}</p>
+                      {t.description && <p className="type-meta mt-0.5 truncate">{t.description}</p>}
                     </div>
                     {t.pending && <CloudOff className="h-4 w-4 shrink-0 text-warning" aria-label="Not synced yet" />}
-                    <span className={cn("shrink-0 font-semibold tabular", t.type === "income" && "text-success")}>
-                      {t.type === "income" ? "+" : "−"}
-                      {formatMoney(t.amount, currency)}
-                    </span>
+                    <Money
+                      value={t.amount}
+                      currency={currency}
+                      sign={t.type === "income" ? "+" : "−"}
+                      className={cn("type-item shrink-0", t.type === "income" && "text-success")}
+                    />
                   </button>
                 </li>
               ))}
@@ -143,7 +150,7 @@ export const HistoryView = () => {
         <button
           type="button"
           onClick={() => setShown((n) => n + PAGE)}
-          className="mt-5 w-full rounded-3xl bg-secondary py-3.5 text-sm font-semibold text-primary active:scale-[0.98]"
+          className="type-label mt-5 w-full rounded-3xl bg-secondary py-3.5 text-primary active:scale-[0.98]"
         >
           Show older
         </button>
@@ -151,7 +158,7 @@ export const HistoryView = () => {
 
       {data.transactions.length > 0 && (
         <section className="mt-8 space-y-3">
-          <h2 className="px-1 font-display text-lg font-semibold">Trends</h2>
+          <h2 className="type-title px-1">Trends</h2>
           <SpendingChart transactions={data.transactions} currency={currency} />
           <CategoryBreakdown transactions={data.transactions} currency={currency} />
         </section>

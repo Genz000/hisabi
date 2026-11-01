@@ -21,7 +21,7 @@ export const NumberPad = ({ onKey }: { onKey: (key: PadKey) => void }) => (
         key={key}
         type="button"
         onClick={() => onKey(key)}
-        className="h-[54px] select-none rounded-2xl bg-muted/70 font-display text-2xl font-medium text-foreground tabular transition-transform active:scale-95 active:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        className="h-[54px] select-none rounded-2xl bg-muted/70 font-display text-[1.625rem] font-medium text-foreground transition-transform active:scale-95 active:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         aria-label={key === "back" ? "Delete last digit" : key === "." ? "Decimal point" : key}
       >
         {key === "back" ? <Delete className="mx-auto h-6 w-6" strokeWidth={1.75} /> : key}

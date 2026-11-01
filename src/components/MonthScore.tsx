@@ -1,10 +1,11 @@
 import { format } from "date-fns";
+import { Money } from "@/components/Money";
 import { formatMoney, monthProgress, type Pace } from "@/lib/hisabi";
 import { cn } from "@/lib/utils";
 
 const PACE = {
   good: { text: "On pace", ring: "stroke-success", chip: "bg-success/10 text-success" },
-  fast: { text: "Spending a bit fast", ring: "stroke-warning", chip: "bg-warning/15 text-[hsl(32_80%_36%)]" },
+  fast: { text: "Spending a bit fast", ring: "stroke-warning", chip: "bg-warning/15 text-warning-ink" },
   over: { text: "Over your limits", ring: "stroke-destructive", chip: "bg-destructive/10 text-destructive" },
 } as const;
 
@@ -67,18 +68,18 @@ export const MonthScore = ({
     <div className="min-w-0 flex-1">
       {pace === "none" ? (
         <>
-          <p className="font-display text-lg font-semibold leading-tight">Set your monthly limits</p>
-          <p className="mt-0.5 text-sm text-muted-foreground">See what's left to spend and whether you're on pace.</p>
+          <p className="type-title">Set your monthly limits</p>
+          <p className="mt-1 text-sm text-muted-foreground">See what's left to spend and whether you're on pace.</p>
         </>
       ) : (
         <>
-          <p className="text-sm text-muted-foreground">Left in {format(new Date(), "MMMM")}</p>
-          <p className={cn("font-display text-2xl font-semibold leading-tight tabular", left < 0 && "text-destructive")}>
-            {formatMoney(left, currency)}
+          <p className="type-meta">Left in {format(new Date(), "MMMM")}</p>
+          <p className={cn("type-card mt-0.5", left < 0 && "text-destructive")}>
+            <Money value={left} currency={currency} />
           </p>
-          <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1">
-            <span className={cn("rounded-full px-2 py-0.5 text-xs font-semibold", PACE[pace].chip)}>{PACE[pace].text}</span>
-            {left > 0 && <span className="text-xs text-muted-foreground tabular">≈ {formatMoney(perDay, currency)} a day</span>}
+          <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1">
+            <span className={cn("type-chip rounded-full px-2.5 py-1", PACE[pace].chip)}>{PACE[pace].text}</span>
+            {left > 0 && <span className="type-meta tabular">about {formatMoney(perDay, currency)} a day</span>}
           </div>
         </>
       )}

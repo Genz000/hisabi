@@ -138,7 +138,7 @@ export const QuickAdd = ({ onOpenBudget }: { onOpenBudget: () => void }) => {
                 aria-selected={kind === k}
                 onClick={() => setKind(k)}
                 className={cn(
-                  "rounded-full px-4 py-1.5 font-semibold transition-colors",
+                  "type-label rounded-full px-4 py-2 transition-colors",
                   kind === k ? "bg-card text-foreground shadow-sm" : "text-muted-foreground",
                 )}
               >
@@ -150,7 +150,7 @@ export const QuickAdd = ({ onOpenBudget }: { onOpenBudget: () => void }) => {
             <button
               type="button"
               onClick={nothingToday}
-              className="flex items-center gap-1.5 rounded-full bg-success/10 px-3 py-2 text-sm font-semibold text-success active:scale-95"
+              className="type-label flex items-center gap-1.5 rounded-full bg-success/10 px-3.5 py-2 text-success active:scale-95"
             >
               <Check className="h-4 w-4" aria-hidden />
               Nothing today
@@ -158,9 +158,9 @@ export const QuickAdd = ({ onOpenBudget }: { onOpenBudget: () => void }) => {
           )}
         </div>
 
-        <p className="mt-4 px-1 font-display text-lg font-semibold">
+        <h2 className="type-title mt-6 px-1">
           {kind === "expense" ? "What did you spend on?" : "Where did it come from?"}
-        </p>
+        </h2>
 
         <div className="mt-3 grid grid-cols-3 gap-2.5" aria-label="Categories">
           {categories.map((c, i) => {
@@ -176,14 +176,15 @@ export const QuickAdd = ({ onOpenBudget }: { onOpenBudget: () => void }) => {
               >
                 <CategoryBadge id={c.id} icon={c.icon} size="lg" />
                 <span className="w-full">
-                  <span className="line-clamp-2 hyphens-auto text-sm font-semibold leading-tight" lang="en">
-                    {c.name}
+                  <span className="type-label line-clamp-2 hyphens-auto" lang="en">
+                    {/* let names like "Health/medical" wrap after the slash */}
+                    {c.name.replace(/\//g, "/​")}
                   </span>
                   {left !== null && (
                     <span
                       className={cn(
-                        "mt-0.5 block truncate text-xs font-medium tabular",
-                        state === "over" ? "text-destructive" : state === "near" ? "text-[hsl(32_80%_40%)]" : "text-muted-foreground",
+                        "type-meta mt-1 block truncate tabular",
+                        state === "over" ? "text-destructive" : state === "near" && "text-warning-ink",
                       )}
                     >
                       {left < 0 ? `${formatNumber(-left)} over` : `${formatNumber(left)} left`}

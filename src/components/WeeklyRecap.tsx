@@ -1,5 +1,6 @@
 import { TrendingDown, TrendingUp, X } from "lucide-react";
-import { formatMoney, weekStats, type Transaction } from "@/lib/hisabi";
+import { Money } from "@/components/Money";
+import { weekStats, type Transaction } from "@/lib/hisabi";
 import { cn } from "@/lib/utils";
 
 /** Last 7 days at a glance: spent, change vs the week before, days logged, top category. */
@@ -23,7 +24,7 @@ export const WeeklyRecap = ({
       <span className="pointer-events-none absolute -bottom-10 right-10 h-20 w-20 rounded-full bg-white/10" aria-hidden />
 
       <div className="relative flex items-start justify-between">
-        <h2 className="font-display text-lg font-semibold">Your week</h2>
+        <h2 className="type-title">Your week</h2>
         {onDismiss && (
           <button type="button" onClick={onDismiss} className="-m-1 rounded-full p-1 text-white/80" aria-label="Hide weekly recap">
             <X className="h-4 w-4" />
@@ -31,13 +32,15 @@ export const WeeklyRecap = ({
         )}
       </div>
 
-      <p className="relative mt-1 font-display text-3xl font-semibold tabular">{formatMoney(w.spent, currency)}</p>
-      <p className="relative text-sm text-white/80">spent in the last 7 days</p>
+      <p className="type-card relative mt-2">
+        <Money value={w.spent} currency={currency} className="[&_.money-unit]:text-white/75" />
+      </p>
+      <p className="relative mt-0.5 text-sm text-white/85">spent in the last 7 days</p>
 
-      <dl className="relative mt-3 grid grid-cols-3 gap-2 text-sm">
+      <dl className="relative mt-4 grid grid-cols-3 gap-2">
         <div className="rounded-2xl bg-white/15 px-3 py-2">
-          <dt className="text-white/75">vs last week</dt>
-          <dd className="mt-0.5 flex items-center gap-1 font-semibold tabular">
+          <dt className="text-[0.8125rem] font-medium text-white/80">vs last week</dt>
+          <dd className="type-label mt-1 flex items-center gap-1 tabular">
             {w.change === null ? (
               "–"
             ) : (
@@ -52,12 +55,12 @@ export const WeeklyRecap = ({
           </dd>
         </div>
         <div className="rounded-2xl bg-white/15 px-3 py-2">
-          <dt className="text-white/75">Days logged</dt>
-          <dd className="mt-0.5 font-semibold tabular">{w.activeDays} of 7</dd>
+          <dt className="text-[0.8125rem] font-medium text-white/80">Days logged</dt>
+          <dd className="type-label mt-1 tabular">{w.activeDays} of 7</dd>
         </div>
         <div className="min-w-0 rounded-2xl bg-white/15 px-3 py-2">
-          <dt className="text-white/75">Most on</dt>
-          <dd className="mt-0.5 truncate font-semibold">{w.top?.name ?? "–"}</dd>
+          <dt className="text-[0.8125rem] font-medium text-white/80">Most on</dt>
+          <dd className="type-label mt-1 truncate">{w.top?.name ?? "–"}</dd>
         </div>
       </dl>
     </section>

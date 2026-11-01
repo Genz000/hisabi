@@ -74,9 +74,9 @@ export const AmountSheet = ({
             <div className="flex items-center gap-3">
               <CategoryBadge id={category.id} icon={category.icon} size="lg" />
               <div className="min-w-0 flex-1">
-                <DrawerTitle className="truncate font-display text-xl font-semibold">{category.name}</DrawerTitle>
+                <DrawerTitle className="type-title truncate">{category.name}</DrawerTitle>
                 {left !== null && (
-                  <p className={cn("text-sm tabular", after !== null && after < 0 ? "text-destructive" : "text-muted-foreground")}>
+                  <p className={cn("type-meta mt-0.5 tabular", after !== null && after < 0 && "text-destructive")}>
                     {after !== null && after < 0
                       ? `${formatMoney(-after, currency)} over this month`
                       : `${formatMoney(after ?? left, currency)} left this month`}
@@ -88,14 +88,14 @@ export const AmountSheet = ({
             <p
               key={nudge}
               className={cn(
-                "mt-5 text-center font-display text-[clamp(3.25rem,16vw,4.75rem)] font-semibold leading-none tabular",
+                "type-hero mt-6 text-center tabular",
                 amount ? "text-foreground" : "text-muted-foreground/40",
                 nudge > 0 && "animate-nudge",
               )}
               aria-live="polite"
             >
               {amount ? (amount.endsWith(".") ? formatNumber(value) + "." : formatNumber(value)) : "0"}
-              <span className="ml-2 text-[0.32em] font-medium text-muted-foreground">{currency}</span>
+              <span className="money-unit">{currency}</span>
             </p>
 
             <div className="mt-4 flex justify-center gap-2">
@@ -103,7 +103,7 @@ export const AmountSheet = ({
                 type="button"
                 onClick={() => setShowNote((v) => !v)}
                 className={cn(
-                  "flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium",
+                  "type-label flex items-center gap-1.5 rounded-full px-3.5 py-2",
                   note ? "cat-soft cat-text" : "bg-muted text-muted-foreground",
                 )}
               >
@@ -114,7 +114,7 @@ export const AmountSheet = ({
                 type="button"
                 onClick={() => setShowDate((v) => !v)}
                 className={cn(
-                  "flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium",
+                  "type-label flex items-center gap-1.5 rounded-full px-3.5 py-2",
                   date !== todayISO() ? "cat-soft cat-text" : "bg-muted text-muted-foreground",
                 )}
               >
@@ -140,7 +140,7 @@ export const AmountSheet = ({
                     type="button"
                     onClick={() => setDate(d)}
                     className={cn(
-                      "rounded-xl border px-3 text-sm font-medium",
+                      "type-label rounded-xl border px-3",
                       date === d ? "border-transparent cat-soft cat-text" : "border-border",
                     )}
                   >
@@ -165,7 +165,7 @@ export const AmountSheet = ({
             <button
               type="button"
               onClick={save}
-              className="mt-3 h-14 w-full rounded-2xl font-display text-lg font-semibold text-white transition-transform cat-bg active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+              className="mt-3 h-14 w-full rounded-2xl font-display text-xl font-semibold text-white transition-transform cat-bg active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
             >
               {value > 0 ? `Save ${formatMoney(value, currency)}` : "Enter an amount"}
             </button>

@@ -49,12 +49,12 @@ export default function Auth() {
   return (
     <div className="flex min-h-[100dvh] flex-col justify-center bg-background px-6 pt-safe pb-safe">
       <div className="mx-auto w-full max-w-sm">
-        <h1 className="font-display text-5xl font-semibold tracking-tight">Hisabi</h1>
-        <p className="mt-2 text-muted-foreground">Log what you spend in five seconds, and always know what's left.</p>
+        <h1 className="font-display text-[3.5rem] font-semibold leading-none tracking-[-0.01em]">Hisabi</h1>
+        <p className="mt-3 max-w-[30ch] text-lg leading-snug text-muted-foreground">Log what you spend in five seconds, and always know what's left.</p>
 
         {sentTo ? (
           <div className="mt-10 rounded-2xl border border-border bg-card p-5">
-            <p className="font-semibold">Check your email</p>
+            <p className="type-title">Check your email</p>
             <p className="mt-1 text-sm text-muted-foreground">
               We sent a confirmation link to {sentTo}. Open it on this device, then you're in.
             </p>

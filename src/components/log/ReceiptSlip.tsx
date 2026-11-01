@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { CloudOff } from "lucide-react";
 import { CategoryBadge } from "@/components/CategoryIcon";
 import { PaceBar } from "@/components/PaceBar";
+import { Money } from "@/components/Money";
 import { formatMoney, type Category, type Transaction } from "@/lib/hisabi";
 import { cn } from "@/lib/utils";
 
@@ -43,16 +44,15 @@ export const ReceiptSlip = ({
       <div className="flex items-start gap-3">
         <CategoryBadge id={category?.id} icon={category?.icon ?? null} size="lg" className="animate-pop" />
         <div className="min-w-0 flex-1">
-          <p className="truncate text-sm text-muted-foreground">{t.category}</p>
-          <p className="font-display text-3xl font-semibold leading-tight tabular">
-            {t.type === "income" ? "+" : ""}
-            {formatMoney(t.amount, currency)}
+          <p className="type-meta truncate">{t.category}</p>
+          <p className="type-card mt-0.5">
+            <Money value={t.amount} currency={currency} sign={t.type === "income" ? "+" : undefined} />
           </p>
         </div>
         <button
           type="button"
           onClick={onUndo}
-          className="rounded-full bg-secondary px-4 py-2 text-sm font-semibold text-primary active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          className="type-label rounded-full bg-secondary px-4 py-2.5 text-primary active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
           Undo
         </button>

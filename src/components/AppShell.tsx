@@ -34,7 +34,7 @@ export const AppShell = () => {
       <header className="flex h-14 shrink-0 items-center justify-between px-4">
         <div
           className={cn(
-            "flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-semibold",
+            "type-label flex items-center gap-1.5 rounded-full px-3 py-2",
             doneToday ? "bg-warning/15 text-foreground" : "bg-muted text-muted-foreground",
           )}
           title={doneToday ? "Today is counted" : "Log something or tap “Nothing spent today” to keep your streak"}
@@ -79,7 +79,7 @@ export const AppShell = () => {
                 onClick={() => setTab(id)}
                 aria-current={tab === id ? "page" : undefined}
                 className={cn(
-                  "flex h-16 w-full flex-col items-center justify-center gap-1 text-xs font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring",
+                  "type-chip flex h-16 w-full flex-col items-center justify-center gap-1.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring",
                   tab === id ? "text-primary" : "text-muted-foreground",
                 )}
               >

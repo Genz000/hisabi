@@ -1,4 +1,3 @@
-@import url("https://fonts.googleapis.com/css2?family=Fredoka:wght@400..700&family=Figtree:wght@400..700&display=swap");
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -36,6 +35,8 @@
 
     --warning: 38 91% 55%;
     --warning-foreground: 240 33% 22%;
+    /* warning as text on white needs a darker shade to reach 4.5:1 */
+    --warning-ink: 32 85% 33%;
 
     --destructive: 3 85% 62%;
     --destructive-foreground: 0 0% 100%;
@@ -120,6 +121,22 @@
   body {
     @apply bg-background text-foreground font-sans antialiased;
     overscroll-behavior-y: none;
+    caret-color: hsl(var(--primary));
+  }
+
+  ::selection {
+    background-color: hsl(var(--primary) / 0.18);
+    color: hsl(var(--foreground));
+  }
+
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
   }
 
   /* iOS zooms into inputs smaller than 16px */
@@ -139,7 +156,61 @@
   }
 }
 
+/* Type roles. One scale for the whole app:
+   figures (money) in Fredoka, words in Figtree.
+   hero 3.25-4.5rem > screen 2.25rem > card 1.75rem > stat 1.25rem
+   title 1.25rem > item 1rem > label .875rem > meta .8125rem > chip .75rem */
+@layer components {
+  .type-hero {
+    @apply font-display font-semibold leading-none tracking-[-0.01em];
+    font-size: clamp(3.25rem, 16vw, 4.5rem);
+  }
+
+  .type-screen {
+    @apply font-display text-[2.25rem] font-semibold leading-[1.05] tracking-[-0.01em];
+  }
+
+  .type-card {
+    @apply font-display text-[1.75rem] font-semibold leading-[1.1];
+  }
+
+  .type-stat {
+    @apply font-display text-xl font-semibold leading-tight;
+  }
+
+  .type-title {
+    @apply font-display text-xl font-semibold leading-tight;
+  }
+
+  .type-item {
+    @apply text-base font-semibold leading-snug;
+  }
+
+  .type-label {
+    @apply text-sm font-semibold leading-tight;
+  }
+
+  .type-meta {
+    @apply text-[0.8125rem] font-medium leading-snug text-muted-foreground;
+  }
+
+  .type-chip {
+    @apply text-xs font-semibold leading-none;
+  }
+
+  /* "MAD" after a figure: smaller, lighter, never competing with the number */
+  .money-unit {
+    @apply ml-[0.22em] font-sans font-semibold text-muted-foreground;
+    font-size: max(0.75rem, 0.42em);
+    letter-spacing: 0.02em;
+  }
+}
+
 @layer utilities {
+  .text-warning-ink {
+    color: hsl(var(--warning-ink));
+  }
+
   /* Category colour, set per element with style={catStyle(id)} */
   .cat-text {
     color: hsl(var(--cat));
