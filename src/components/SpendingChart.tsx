@@ -1,15 +1,18 @@
 import { useState } from "react";
+import { parseISO } from "date-fns";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Transaction } from "@/pages/Index";
+import { formatMoney, type Transaction } from "@/lib/hisabi";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 interface SpendingChartProps {
   transactions: Transaction[];
+  currency: string;
 }
 type ViewMode = "daily" | "monthly";
 export const SpendingChart = ({
-  transactions
+  transactions,
+  currency
 }: SpendingChartProps) => {
   const [viewMode, setViewMode] = useState<ViewMode>("daily");
   // Filter transactions for current month if in daily mode
@@ -17,13 +20,13 @@ export const SpendingChart = ({
   const currentMonth = now.getMonth();
   const currentYear = now.getFullYear();
   const filteredTransactions = viewMode === "daily" ? transactions.filter(t => {
-    const transactionDate = new Date(t.date);
+    const transactionDate = parseISO(t.date);
     return transactionDate.getMonth() === currentMonth && transactionDate.getFullYear() === currentYear;
   }) : transactions;
 
   // Group transactions by date or month
   const dataByPeriod = filteredTransactions.reduce((acc, transaction) => {
-    const date = new Date(transaction.date);
+    const date = parseISO(transaction.date);
     const key = viewMode === "daily" ? date.toLocaleDateString("en-US", {
       month: "short",
       day: "numeric"
@@ -52,23 +55,23 @@ export const SpendingChart = ({
   const chartData = Object.values(dataByPeriod).sort((a, b) => {
     return new Date(a.date).getTime() - new Date(b.date).getTime();
   });
-  return <Card className="px-[10px]">
+  return <Card className="rounded-2xl border-border shadow-none">
       <CardHeader className="pb-3">
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-lg">Spending Overview</CardTitle>
-          <RadioGroup value={viewMode} onValueChange={value => setViewMode(value as ViewMode)} className="flex gap-4">
+        <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
+          <CardTitle className="font-display text-lg">Spending Overview</CardTitle>
+          <RadioGroup value={viewMode} onValueChange={value => setViewMode(value as ViewMode)} className="flex gap-3">
             <div className="flex items-center gap-1.5">
               <RadioGroupItem value="daily" id="daily-spending" />
-              <Label htmlFor="daily-spending" className="text-xs cursor-pointer">Daily</Label>
+              <Label htmlFor="daily-spending" className="text-xs cursor-pointer">This month</Label>
             </div>
             <div className="flex items-center gap-1.5">
               <RadioGroupItem value="monthly" id="monthly-spending" />
-              <Label htmlFor="monthly-spending" className="text-xs cursor-pointer">Monthly</Label>
+              <Label htmlFor="monthly-spending" className="text-xs cursor-pointer">All time</Label>
             </div>
           </RadioGroup>
         </div>
       </CardHeader>
-      <CardContent className="flex-row my-0 flex items-center justify-start py-[83px]">
+      <CardContent className="flex-row my-0 flex items-center justify-start py-4">
         <ResponsiveContainer width="100%" height={200}>
           <LineChart data={chartData} className="mr-0 pl-0 pr-[30px] pt-[10px]">
             <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
@@ -82,7 +85,7 @@ export const SpendingChart = ({
             backgroundColor: "hsl(var(--card))",
             border: "1px solid hsl(var(--border))",
             borderRadius: "8px"
-          }} />
+          }} formatter={(value: number) => formatMoney(value, currency)} />
             
             <Line dataKey="expenses" stroke="hsl(var(--destructive))" strokeWidth={2} dot={{
             r: 4

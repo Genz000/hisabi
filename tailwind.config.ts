@@ -43,6 +43,10 @@ export default {
   				DEFAULT: 'hsl(var(--success))',
   				foreground: 'hsl(var(--success-foreground))'
   			},
+  			warning: {
+  				DEFAULT: 'hsl(var(--warning))',
+  				foreground: 'hsl(var(--warning-foreground))'
+  			},
   			popover: {
   				DEFAULT: 'hsl(var(--popover))',
   				foreground: 'hsl(var(--popover-foreground))'
@@ -83,13 +87,41 @@ export default {
   				to: {
   					height: '0'
   				}
+  			},
+  			'slip-in': {
+  				from: {
+  					transform: 'translateY(110%)'
+  				},
+  				to: {
+  					transform: 'translateY(0)'
+  				}
+  			},
+  			nudge: {
+  				'0%, 100%': {
+  					transform: 'translateX(0)'
+  				},
+  				'25%': {
+  					transform: 'translateX(-6px)'
+  				},
+  				'75%': {
+  					transform: 'translateX(6px)'
+  				}
   			}
   		},
   		animation: {
   			'accordion-down': 'accordion-down 0.2s ease-out',
-  			'accordion-up': 'accordion-up 0.2s ease-out'
+  			'accordion-up': 'accordion-up 0.2s ease-out',
+  			'slip-in': 'slip-in 0.28s cubic-bezier(0.2, 0.9, 0.3, 1.2)',
+  			nudge: 'nudge 0.32s ease-in-out'
   		},
   		fontFamily: {
+  			display: [
+  				'Bricolage Grotesque',
+  				'Manrope',
+  				'ui-sans-serif',
+  				'system-ui',
+  				'sans-serif'
+  			],
   			sans: [
   				'Manrope',
   				'ui-sans-serif',

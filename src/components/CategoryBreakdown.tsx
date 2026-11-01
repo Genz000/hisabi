@@ -1,16 +1,19 @@
 import { useState } from "react";
+import { parseISO } from "date-fns";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Transaction } from "@/pages/Index";
+import { formatMoney, type Transaction } from "@/lib/hisabi";
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from "recharts";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 interface CategoryBreakdownProps {
   transactions: Transaction[];
+  currency: string;
 }
 type ViewMode = "daily" | "monthly";
-const COLORS = ["hsl(160, 84%, 39%)", "hsl(25, 95%, 53%)", "hsl(262, 83%, 58%)", "hsl(198, 93%, 60%)", "hsl(48, 96%, 53%)", "hsl(339, 90%, 51%)", "hsl(187, 85%, 43%)", "hsl(280, 70%, 60%)"];
+const COLORS = ["hsl(231, 61%, 49%)", "hsl(160, 64%, 34%)", "hsl(40, 87%, 45%)", "hsl(8, 62%, 47%)", "hsl(200, 70%, 45%)", "hsl(280, 45%, 50%)", "hsl(221, 41%, 30%)", "hsl(100, 12%, 60%)"];
 export const CategoryBreakdown = ({
-  transactions
+  transactions,
+  currency
 }: CategoryBreakdownProps) => {
   const [viewMode, setViewMode] = useState<ViewMode>("daily");
 
@@ -19,7 +22,7 @@ export const CategoryBreakdown = ({
   const currentMonth = now.getMonth();
   const currentYear = now.getFullYear();
   const filteredTransactions = viewMode === "daily" ? transactions.filter(t => {
-    const transactionDate = new Date(t.date);
+    const transactionDate = parseISO(t.date);
     return transactionDate.getMonth() === currentMonth && transactionDate.getFullYear() === currentYear;
   }) : transactions;
 
@@ -36,18 +39,18 @@ export const CategoryBreakdown = ({
     value
   })).sort((a, b) => b.value - a.value);
   const totalExpenses = chartData.reduce((sum, item) => sum + item.value, 0);
-  return <Card className="px-[10px]">
+  return <Card className="rounded-2xl border-border shadow-none">
       <CardHeader className="pb-3">
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-lg">Spending by Category</CardTitle>
-          <RadioGroup value={viewMode} onValueChange={value => setViewMode(value as ViewMode)} className="flex gap-4">
+        <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
+          <CardTitle className="font-display text-lg">Spending by Category</CardTitle>
+          <RadioGroup value={viewMode} onValueChange={value => setViewMode(value as ViewMode)} className="flex gap-3">
             <div className="flex items-center gap-1.5">
               <RadioGroupItem value="daily" id="daily-category" />
-              <Label htmlFor="daily-category" className="text-xs cursor-pointer">Daily</Label>
+              <Label htmlFor="daily-category" className="text-xs cursor-pointer">This month</Label>
             </div>
             <div className="flex items-center gap-1.5">
               <RadioGroupItem value="monthly" id="monthly-category" />
-              <Label htmlFor="monthly-category" className="text-xs cursor-pointer">Monthly</Label>
+              <Label htmlFor="monthly-category" className="text-xs cursor-pointer">All time</Label>
             </div>
           </RadioGroup>
         </div>
@@ -68,7 +71,7 @@ export const CategoryBreakdown = ({
               backgroundColor: "hsl(var(--card))",
               border: "1px solid hsl(var(--border))",
               borderRadius: "8px"
-            }} formatter={(value: number) => `$${value.toFixed(2)}`} />
+            }} formatter={(value: number) => formatMoney(value, currency)} />
                 
               </PieChart>
             </ResponsiveContainer>
@@ -82,7 +85,7 @@ export const CategoryBreakdown = ({
                   </div>
                   <div className="text-right">
                     <span className="font-semibold text-foreground">
-                      ${item.value.toFixed(2)}
+                      {formatMoney(item.value, currency)}
                     </span>
                     <span className="text-muted-foreground ml-1.5">
                       ({(item.value / totalExpenses * 100).toFixed(1)}%)

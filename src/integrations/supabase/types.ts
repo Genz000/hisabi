@@ -14,6 +14,63 @@ export type Database = {
   }
   public: {
     Tables: {
+      categories: {
+        Row: {
+          archived: boolean
+          created_at: string
+          icon: string | null
+          id: string
+          kind: string
+          monthly_limit: number | null
+          name: string
+          sort_order: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          archived?: boolean
+          created_at?: string
+          icon?: string | null
+          id?: string
+          kind: string
+          monthly_limit?: number | null
+          name: string
+          sort_order?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          archived?: boolean
+          created_at?: string
+          icon?: string | null
+          id?: string
+          kind?: string
+          monthly_limit?: number | null
+          name?: string
+          sort_order?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      check_ins: {
+        Row: {
+          created_at: string
+          date: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          date: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          date?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       expense_limits: {
         Row: {
           category: string
@@ -45,21 +102,27 @@ export type Database = {
         Row: {
           avatar_url: string | null
           created_at: string
+          currency: string
           id: string
+          starting_balance: number
           updated_at: string
           user_id: string
         }
         Insert: {
           avatar_url?: string | null
           created_at?: string
+          currency?: string
           id?: string
+          starting_balance?: number
           updated_at?: string
           user_id: string
         }
         Update: {
           avatar_url?: string | null
           created_at?: string
+          currency?: string
           id?: string
+          starting_balance?: number
           updated_at?: string
           user_id?: string
         }
@@ -106,7 +169,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      rename_category: {
+        Args: { _category_id: string; _new_name: string }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never

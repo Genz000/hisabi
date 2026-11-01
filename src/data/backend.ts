@@ -1,0 +1,177 @@
+import { supabase } from "@/integrations/supabase/client";
+import type { Category, Kind, Profile, Transaction } from "@/lib/hisabi";
+
+export interface Snapshot {
+  userId: string;
+  email: string | null;
+  profile: Profile;
+  categories: Category[];
+  transactions: Transaction[];
+  checkIns: string[];
+}
+
+/** Everything the app reads and writes. The Supabase one is real; the demo one lives in memory. */
+export interface Backend {
+  load(): Promise<Snapshot>;
+  insertTransaction(t: Transaction): Promise<void>;
+  updateTransaction(id: string, patch: Partial<Omit<Transaction, "id">>): Promise<void>;
+  deleteTransaction(id: string): Promise<void>;
+  insertCheckIn(date: string): Promise<void>;
+  saveCategory(c: Category): Promise<void>;
+  renameCategory(id: string, name: string): Promise<void>;
+  updateProfile(patch: Partial<Profile>): Promise<void>;
+  uploadAvatar(blob: Blob): Promise<string>;
+  signOut(): Promise<void>;
+}
+
+const toTransaction = (row: {
+  id: string;
+  date: string;
+  amount: number;
+  description: string | null;
+  category: string;
+  type: string;
+  created_at: string;
+}): Transaction => ({
+  id: row.id,
+  date: row.date,
+  amount: Number(row.amount),
+  description: row.description ?? "",
+  category: row.category,
+  type: row.type as Kind,
+  createdAt: row.created_at,
+});
+
+const toCategory = (row: {
+  id: string;
+  name: string;
+  icon: string | null;
+  kind: string;
+  monthly_limit: number | null;
+  sort_order: number;
+  archived: boolean;
+}): Category => ({
+  id: row.id,
+  name: row.name,
+  icon: row.icon,
+  kind: row.kind as Kind,
+  monthlyLimit: row.monthly_limit === null ? null : Number(row.monthly_limit),
+  sortOrder: row.sort_order,
+  archived: row.archived,
+});
+
+const check = <T extends { error: { message: string; code?: string } | null }>(res: T) => {
+  if (res.error) throw res.error;
+  return res;
+};
+
+export const createSupabaseBackend = (userId: string, email: string | null): Backend => ({
+  async load() {
+    const [profile, categories, transactions, checkIns] = await Promise.all([
+      supabase.from("profiles").select("currency, starting_balance, avatar_url").eq("user_id", userId).maybeSingle(),
+      supabase.from("categories").select("*").order("sort_order"),
+      supabase.from("transactions").select("*").order("date", { ascending: false }).order("created_at", { ascending: false }),
+      supabase.from("check_ins").select("date"),
+    ]);
+    check(profile);
+    check(categories);
+    check(transactions);
+    check(checkIns);
+    return {
+      userId,
+      email,
+      profile: {
+        currency: profile.data?.currency ?? "MAD",
+        startingBalance: Number(profile.data?.starting_balance ?? 0),
+        avatarUrl: profile.data?.avatar_url ?? null,
+      },
+      categories: (categories.data ?? []).map(toCategory),
+      transactions: (transactions.data ?? []).map(toTransaction),
+      checkIns: (checkIns.data ?? []).map((c) => c.date),
+    };
+  },
+
+  async insertTransaction(t) {
+    const res = await supabase.from("transactions").insert({
+      id: t.id,
+      user_id: userId,
+      date: t.date,
+      amount: t.amount,
+      description: t.description || null,
+      category: t.category,
+      type: t.type,
+    });
+    // A retry after a lost response finds the row already there.
+    if (res.error && res.error.code !== "23505") throw res.error;
+  },
+
+  async updateTransaction(id, patch) {
+    check(
+      await supabase
+        .from("transactions")
+        .update({
+          ...(patch.date !== undefined && { date: patch.date }),
+          ...(patch.amount !== undefined && { amount: patch.amount }),
+          ...(patch.description !== undefined && { description: patch.description || null }),
+          ...(patch.category !== undefined && { category: patch.category }),
+          ...(patch.type !== undefined && { type: patch.type }),
+        })
+        .eq("id", id),
+    );
+  },
+
+  async deleteTransaction(id) {
+    check(await supabase.from("transactions").delete().eq("id", id));
+  },
+
+  async insertCheckIn(date) {
+    const res = await supabase.from("check_ins").insert({ user_id: userId, date });
+    if (res.error && res.error.code !== "23505") throw res.error;
+  },
+
+  async saveCategory(c) {
+    check(
+      await supabase.from("categories").upsert({
+        id: c.id,
+        user_id: userId,
+        name: c.name,
+        icon: c.icon,
+        kind: c.kind,
+        monthly_limit: c.monthlyLimit,
+        sort_order: c.sortOrder,
+        archived: c.archived,
+      }),
+    );
+  },
+
+  async renameCategory(id, name) {
+    check(await supabase.rpc("rename_category", { _category_id: id, _new_name: name }));
+  },
+
+  async updateProfile(patch) {
+    check(
+      await supabase.from("profiles").upsert(
+        {
+          user_id: userId,
+          ...(patch.currency !== undefined && { currency: patch.currency }),
+          ...(patch.startingBalance !== undefined && { starting_balance: patch.startingBalance }),
+          ...(patch.avatarUrl !== undefined && { avatar_url: patch.avatarUrl }),
+        },
+        { onConflict: "user_id" },
+      ),
+    );
+  },
+
+  async uploadAvatar(blob) {
+    const timestamp = Date.now();
+    const path = `${userId}/avatar-${timestamp}.jpg`;
+    check(await supabase.storage.from("avatars").upload(path, blob, { upsert: true, contentType: "image/jpeg" }));
+    const url = `${supabase.storage.from("avatars").getPublicUrl(path).data.publicUrl}?t=${timestamp}`;
+    await this.updateProfile({ avatarUrl: url });
+    return url;
+  },
+
+  async signOut() {
+    await supabase.auth.signOut();
+  },
+});

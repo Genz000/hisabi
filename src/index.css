@@ -1,76 +1,61 @@
-@import url("https://fonts.googleapis.com/css2?family=Poppins&display=swap");
-@import url("https://fonts.googleapis.com/css2?family=JetBrains+Mono&display=swap");
-@import url("https://fonts.googleapis.com/css2?family=Manrope&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Manrope:wght@400..700&display=swap");
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL.
-*/
+/* Hisabi design tokens. All colors are HSL.
+   Paper #F2F4F1, ink #18233A, Majorelle cobalt #3047C9,
+   mint #1F8F6A (on track), saffron #D9940F (near limit), brick #C2412D (over). */
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 160 15% 15%;
+    --background: 100 12% 95%;
+    --foreground: 221 41% 16%;
 
     --card: 0 0% 100%;
-    --card-foreground: 160 15% 15%;
+    --card-foreground: 221 41% 16%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 160 15% 15%;
+    --popover-foreground: 221 41% 16%;
 
-    --primary: 211 100% 50%;
+    --primary: 231 61% 49%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 160 60% 96%;
-    --secondary-foreground: 211 100% 50%;
+    --secondary: 231 60% 95%;
+    --secondary-foreground: 231 61% 40%;
 
-    --muted: 160 30% 96%;
-    --muted-foreground: 160 10% 45%;
+    --muted: 100 10% 90%;
+    --muted-foreground: 221 14% 42%;
 
-    --accent: 211 100% 50%;
-    --accent-foreground: 0 0% 100%;
+    --accent: 231 60% 95%;
+    --accent-foreground: 231 61% 40%;
 
-    --success: 142 76% 36%;
+    --success: 160 64% 34%;
     --success-foreground: 0 0% 100%;
 
-    --destructive: 0 84.2% 60.2%;
+    --warning: 40 87% 45%;
+    --warning-foreground: 221 41% 16%;
+
+    --destructive: 8 62% 47%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 160 20% 90%;
-    --input: 160 20% 90%;
-    --ring: 200 98.01% 39.4118%;
+    --border: 100 8% 86%;
+    --input: 100 8% 82%;
+    --ring: 231 61% 49%;
 
-    --radius: 0.7rem;
+    --radius: 0.9rem;
 
     --sidebar-background: 0 0% 98%;
-
     --sidebar-foreground: 240 5.3% 26.1%;
-
     --sidebar-primary: 240 5.9% 10%;
-
     --sidebar-primary-foreground: 0 0% 98%;
-
     --sidebar-accent: 240 4.8% 95.9%;
-
     --sidebar-accent-foreground: 240 5.9% 10%;
-
     --sidebar-border: 220 13% 91%;
-
     --sidebar-ring: 217.2 91.2% 59.8%;
 
-    --shadow-sm: 0px 1px 1.5px 0px hsla(0, 0%, 0%, 0.2);
-
-    --shadow: 0px 1px 3px 0px hsla(0, 0%, 0%, 0.2);
-
-    --shadow-md: 0px 1px 4.5px 0px hsla(0, 0%, 0%, 0.2);
-
-    --shadow-lg: 0px 1px 7.5px 0px hsla(0, 0%, 0%, 0.2);
-
-    --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, Liberation Mono, Courier New, monospace;
-
-    --font-sans: Manrope, ui-sans-serif, system-ui, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji;
+    --font-sans: Manrope, ui-sans-serif, system-ui, sans-serif;
+    --font-display: "Bricolage Grotesque", Manrope, ui-sans-serif, system-ui, sans-serif;
   }
 
   .dark {
@@ -127,7 +112,42 @@ All colors MUST be HSL.
     @apply border-border;
   }
 
+  html {
+    -webkit-tap-highlight-color: transparent;
+  }
+
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-sans antialiased;
+    overscroll-behavior-y: none;
+  }
+
+  /* iOS zooms into inputs smaller than 16px */
+  input,
+  select,
+  textarea {
+    font-size: max(16px, 1em);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+@layer utilities {
+  .tabular {
+    font-variant-numeric: tabular-nums;
+  }
+
+  .pt-safe {
+    padding-top: env(safe-area-inset-top);
+  }
+
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom);
   }
 }
