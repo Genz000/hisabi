@@ -1,7 +1,8 @@
 import { useMemo, useState } from "react";
 import { format, parseISO, subDays } from "date-fns";
 import { CloudOff } from "lucide-react";
-import { CategoryIcon } from "@/components/CategoryIcon";
+import { CategoryBadge } from "@/components/CategoryIcon";
+import { WeeklyRecap } from "@/components/WeeklyRecap";
 import { SpendingChart } from "@/components/SpendingChart";
 import { CategoryBreakdown } from "@/components/CategoryBreakdown";
 import { TransactionSheet } from "./TransactionSheet";
@@ -24,7 +25,7 @@ export const HistoryView = () => {
   const [shown, setShown] = useState(PAGE);
   const [editing, setEditing] = useState<Transaction | null>(null);
 
-  const icons = useMemo(() => new Map(data.categories.map((c) => [`${c.kind}:${c.name}`, c.icon])), [data.categories]);
+  const cats = useMemo(() => new Map(data.categories.map((c) => [`${c.kind}:${c.name}`, c])), [data.categories]);
 
   const month = monthOf(todayISO());
   const thisMonth = data.transactions.filter((t) => monthOf(t.date) === month);
@@ -52,18 +53,24 @@ export const HistoryView = () => {
           {formatMoney(balance, currency)}
         </p>
         <dl className="mt-3 grid grid-cols-2 gap-2">
-          <div className="rounded-2xl bg-card px-4 py-3">
+          <div className="rounded-3xl bg-card px-4 py-3 shadow-[0_2px_12px_-4px_hsl(var(--foreground)/0.12)]">
             <dt className="text-sm text-muted-foreground">Spent in {format(new Date(), "MMMM")}</dt>
             <dd className="font-display text-xl font-semibold tabular">{formatMoney(out, currency)}</dd>
           </div>
-          <div className="rounded-2xl bg-card px-4 py-3">
+          <div className="rounded-3xl bg-card px-4 py-3 shadow-[0_2px_12px_-4px_hsl(var(--foreground)/0.12)]">
             <dt className="text-sm text-muted-foreground">Received</dt>
             <dd className="font-display text-xl font-semibold text-success tabular">{formatMoney(inc, currency)}</dd>
           </div>
         </dl>
       </section>
 
-      <div className="mt-6 flex rounded-full bg-muted p-0.5 text-sm" role="tablist" aria-label="Show">
+      {data.transactions.length > 0 && (
+        <div className="mt-4">
+          <WeeklyRecap transactions={data.transactions} checkIns={data.checkIns} currency={currency} />
+        </div>
+      )}
+
+      <div className="mt-6 flex rounded-full bg-muted p-1 text-sm" role="tablist" aria-label="Show">
         {(
           [
             ["all", "All"],
@@ -102,7 +109,7 @@ export const HistoryView = () => {
                 <span className="text-sm text-muted-foreground tabular">{formatMoney(day.total, currency)}</span>
               )}
             </div>
-            <ul className="mt-2 divide-y divide-border overflow-hidden rounded-2xl border border-border bg-card">
+            <ul className="mt-2 divide-y divide-border overflow-hidden rounded-3xl bg-card shadow-[0_2px_12px_-4px_hsl(var(--foreground)/0.12)]">
               {day.items.map((t) => (
                 <li key={t.id}>
                   <button
@@ -110,9 +117,10 @@ export const HistoryView = () => {
                     onClick={() => setEditing(t)}
                     className="flex w-full items-center gap-3 px-4 py-3 text-left active:bg-muted focus-visible:bg-muted focus-visible:outline-none"
                   >
-                    <CategoryIcon
-                      icon={icons.get(`${t.type}:${t.category}`) ?? null}
-                      className={cn("h-5 w-5 shrink-0", t.type === "income" ? "text-success" : "text-primary")}
+                    <CategoryBadge
+                      id={cats.get(`${t.type}:${t.category}`)?.id}
+                      icon={cats.get(`${t.type}:${t.category}`)?.icon ?? null}
+                      size="sm"
                     />
                     <div className="min-w-0 flex-1">
                       <p className="truncate font-medium">{t.category}</p>
@@ -135,7 +143,7 @@ export const HistoryView = () => {
         <button
           type="button"
           onClick={() => setShown((n) => n + PAGE)}
-          className="mt-5 w-full rounded-2xl border border-border py-3 text-sm font-semibold text-primary active:bg-muted"
+          className="mt-5 w-full rounded-3xl bg-secondary py-3.5 text-sm font-semibold text-primary active:scale-[0.98]"
         >
           Show older
         </button>

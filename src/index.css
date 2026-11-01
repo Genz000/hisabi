@@ -1,49 +1,50 @@
-@import url("https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Manrope:wght@400..700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Fredoka:wght@400..700&family=Figtree:wght@400..700&display=swap");
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 /* Hisabi design tokens. All colors are HSL.
-   Paper #F2F4F1, ink #18233A, Majorelle cobalt #3047C9,
-   mint #1F8F6A (on track), saffron #D9940F (near limit), brick #C2412D (over). */
+   Clean and playful: white base, ink #26264A, violet #5B4BF5 for actions,
+   each category gets its own bright colour (src/lib/colors.ts).
+   Mint #22B07D on track, mango #F5A524 near limit, tomato #F0524A over. */
 
 @layer base {
   :root {
-    --background: 100 12% 95%;
-    --foreground: 221 41% 16%;
+    --background: 240 33% 98%;
+    --foreground: 240 33% 22%;
 
     --card: 0 0% 100%;
-    --card-foreground: 221 41% 16%;
+    --card-foreground: 240 33% 22%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 221 41% 16%;
+    --popover-foreground: 240 33% 22%;
 
-    --primary: 231 61% 49%;
+    --primary: 246 90% 63%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 231 60% 95%;
-    --secondary-foreground: 231 61% 40%;
+    --secondary: 246 90% 96%;
+    --secondary-foreground: 246 70% 50%;
 
-    --muted: 100 10% 90%;
-    --muted-foreground: 221 14% 42%;
+    --muted: 240 25% 94%;
+    --muted-foreground: 240 12% 46%;
 
-    --accent: 231 60% 95%;
-    --accent-foreground: 231 61% 40%;
+    --accent: 246 90% 96%;
+    --accent-foreground: 246 70% 50%;
 
-    --success: 160 64% 34%;
+    --success: 158 67% 41%;
     --success-foreground: 0 0% 100%;
 
-    --warning: 40 87% 45%;
-    --warning-foreground: 221 41% 16%;
+    --warning: 38 91% 55%;
+    --warning-foreground: 240 33% 22%;
 
-    --destructive: 8 62% 47%;
+    --destructive: 3 85% 62%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 100 8% 86%;
-    --input: 100 8% 82%;
-    --ring: 231 61% 49%;
+    --border: 240 22% 91%;
+    --input: 240 20% 88%;
+    --ring: 246 90% 63%;
 
-    --radius: 0.9rem;
+    --radius: 1rem;
 
     --sidebar-background: 0 0% 98%;
     --sidebar-foreground: 240 5.3% 26.1%;
@@ -54,8 +55,8 @@
     --sidebar-border: 220 13% 91%;
     --sidebar-ring: 217.2 91.2% 59.8%;
 
-    --font-sans: Manrope, ui-sans-serif, system-ui, sans-serif;
-    --font-display: "Bricolage Grotesque", Manrope, ui-sans-serif, system-ui, sans-serif;
+    --font-sans: Figtree, ui-sans-serif, system-ui, sans-serif;
+    --font-display: Fredoka, Figtree, ui-sans-serif, system-ui, sans-serif;
   }
 
   .dark {
@@ -139,6 +140,19 @@
 }
 
 @layer utilities {
+  /* Category colour, set per element with style={catStyle(id)} */
+  .cat-text {
+    color: hsl(var(--cat));
+  }
+
+  .cat-bg {
+    background-color: hsl(var(--cat));
+  }
+
+  .cat-soft {
+    background-color: hsl(var(--cat) / 0.13);
+  }
+
   .tabular {
     font-variant-numeric: tabular-nums;
   }

@@ -96,6 +96,16 @@ export default {
   					transform: 'translateY(0)'
   				}
   			},
+  			pop: {
+  				'0%': {
+  					transform: 'scale(0.6)',
+  					opacity: '0'
+  				},
+  				'100%': {
+  					transform: 'scale(1)',
+  					opacity: '1'
+  				}
+  			},
   			nudge: {
   				'0%, 100%': {
   					transform: 'translateX(0)'
@@ -112,18 +122,19 @@ export default {
   			'accordion-down': 'accordion-down 0.2s ease-out',
   			'accordion-up': 'accordion-up 0.2s ease-out',
   			'slip-in': 'slip-in 0.28s cubic-bezier(0.2, 0.9, 0.3, 1.2)',
-  			nudge: 'nudge 0.32s ease-in-out'
+  			nudge: 'nudge 0.32s ease-in-out',
+  			pop: 'pop 0.35s cubic-bezier(0.3, 1.6, 0.5, 1)'
   		},
   		fontFamily: {
   			display: [
-  				'Bricolage Grotesque',
-  				'Manrope',
+  				'Fredoka',
+  				'Figtree',
   				'ui-sans-serif',
   				'system-ui',
   				'sans-serif'
   			],
   			sans: [
-  				'Manrope',
+  				'Figtree',
   				'ui-sans-serif',
   				'system-ui',
   				'sans-serif',

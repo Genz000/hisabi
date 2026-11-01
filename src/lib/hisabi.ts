@@ -104,3 +104,47 @@ export const isActiveToday = (transactions: Transaction[], checkIns: string[]) =
 
 export const balanceOf = (transactions: Transaction[], startingBalance: number) =>
   transactions.reduce((sum, t) => sum + (t.type === "income" ? t.amount : -t.amount), startingBalance);
+
+export type Pace = "none" | "good" | "fast" | "over";
+
+/** This month across categories that have a limit: what's left, and whether spending is ahead of the calendar. */
+export const monthStatus = (categories: Category[], transactions: Transaction[], date = new Date()) => {
+  const spentBy = totalsThisMonth(transactions, "expense", toISODate(date));
+  const limited = categories.filter((c) => c.kind === "expense" && !c.archived && c.monthlyLimit !== null);
+  const limit = limited.reduce((s, c) => s + (c.monthlyLimit ?? 0), 0);
+  const spent = limited.reduce((s, c) => s + (spentBy.get(c.name) ?? 0), 0);
+  const left = limit - spent;
+  const daysLeft = daysLeftInMonth(date);
+  const pace: Pace = limit === 0 ? "none" : spent > limit ? "over" : spent > limit * monthProgress(date) * 1.1 ? "fast" : "good";
+  return { limit, spent, left, perDay: Math.floor(Math.max(left, 0) / daysLeft), daysLeft, pace };
+};
+
+/** The 7 days ending today, compared with the 7 before. */
+export const weekStats = (transactions: Transaction[], checkIns: string[], date = new Date()) => {
+  const start = toISODate(subDays(date, 6));
+  const prevStart = toISODate(subDays(date, 13));
+  const end = toISODate(date);
+  let spent = 0;
+  let prevSpent = 0;
+  const byCategory = new Map<string, number>();
+  const activeDays = new Set(checkIns.filter((d) => d >= start && d <= end));
+  for (const t of transactions) {
+    const logged = t.createdAt ? toISODate(new Date(t.createdAt)) : t.date;
+    if (logged >= start && logged <= end) activeDays.add(logged);
+    if (t.type !== "expense") continue;
+    if (t.date >= start && t.date <= end) {
+      spent += t.amount;
+      byCategory.set(t.category, (byCategory.get(t.category) ?? 0) + t.amount);
+    } else if (t.date >= prevStart && t.date < start) {
+      prevSpent += t.amount;
+    }
+  }
+  const top = [...byCategory.entries()].sort((a, b) => b[1] - a[1])[0];
+  return {
+    spent,
+    prevSpent,
+    change: prevSpent > 0 ? (spent - prevSpent) / prevSpent : null,
+    activeDays: activeDays.size,
+    top: top ? { name: top[0], amount: top[1] } : null,
+  };
+};

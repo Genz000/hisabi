@@ -15,13 +15,13 @@ export const applyKey = (amount: string, key: PadKey) => {
 };
 
 export const NumberPad = ({ onKey }: { onKey: (key: PadKey) => void }) => (
-  <div className="grid grid-cols-3 gap-1.5">
+  <div className="grid grid-cols-3 gap-2">
     {KEYS.map((key) => (
       <button
         key={key}
         type="button"
         onClick={() => onKey(key)}
-        className="h-[52px] rounded-xl font-display text-2xl font-medium text-foreground tabular transition-colors active:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring select-none"
+        className="h-[54px] select-none rounded-2xl bg-muted/70 font-display text-2xl font-medium text-foreground tabular transition-transform active:scale-95 active:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         aria-label={key === "back" ? "Delete last digit" : key === "." ? "Decimal point" : key}
       >
         {key === "back" ? <Delete className="mx-auto h-6 w-6" strokeWidth={1.75} /> : key}

@@ -55,7 +55,7 @@ export const SpendingChart = ({
   const chartData = Object.values(dataByPeriod).sort((a, b) => {
     return new Date(a.date).getTime() - new Date(b.date).getTime();
   });
-  return <Card className="rounded-2xl border-border shadow-none">
+  return <Card className="rounded-3xl border-0 shadow-[0_2px_12px_-4px_hsl(var(--foreground)/0.12)]">
       <CardHeader className="pb-3">
         <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
           <CardTitle className="font-display text-lg">Spending Overview</CardTitle>

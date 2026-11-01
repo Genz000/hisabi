@@ -1,3 +1,5 @@
+import { cn } from "@/lib/utils";
+import { catStyle } from "@/lib/colors";
 import {
   Baby,
   Book,
@@ -64,3 +66,30 @@ export const CategoryIcon = ({ icon, className }: { icon: string | null; classNa
   const Icon = (icon && CATEGORY_ICONS[icon]) || Tag;
   return <Icon className={className} aria-hidden />;
 };
+
+/** The category's icon in a soft bubble of its colour. */
+export const CategoryBadge = ({
+  id,
+  icon,
+  size = "md",
+  className,
+}: {
+  id: string | undefined;
+  icon: string | null;
+  size?: "sm" | "md" | "lg";
+  className?: string;
+}) => (
+  <span
+    style={catStyle(id ?? "")}
+    className={cn(
+      "grid shrink-0 place-items-center rounded-full",
+      id ? "cat-soft cat-text" : "bg-muted text-muted-foreground",
+      size === "sm" && "h-8 w-8",
+      size === "md" && "h-10 w-10",
+      size === "lg" && "h-12 w-12",
+      className,
+    )}
+  >
+    <CategoryIcon icon={icon} className={size === "sm" ? "h-4 w-4" : size === "lg" ? "h-6 w-6" : "h-5 w-5"} />
+  </span>
+);

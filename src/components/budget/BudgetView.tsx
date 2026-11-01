@@ -1,15 +1,15 @@
 import { useMemo, useState } from "react";
 import { format } from "date-fns";
 import { ChevronRight, Plus } from "lucide-react";
-import { CategoryIcon } from "@/components/CategoryIcon";
+import { CategoryBadge } from "@/components/CategoryIcon";
+import { MonthRing } from "@/components/MonthScore";
 import { PaceBar } from "@/components/PaceBar";
 import { CategorySheet } from "./CategorySheet";
 import { useHisabi } from "@/data/HisabiStore";
 import {
-  daysLeftInMonth,
   formatMoney,
   limitState,
-  monthProgress,
+  monthStatus,
   totalsThisMonth,
   type Category,
   type Kind,
@@ -34,12 +34,7 @@ export const BudgetView = () => {
   const income = active.filter((c) => c.kind === "income").sort((a, b) => a.sortOrder - b.sortOrder);
   const archived = data.categories.filter((c) => c.archived);
 
-  const totalLimit = limited.reduce((s, c) => s + (c.monthlyLimit ?? 0), 0);
-  const totalSpent = limited.reduce((s, c) => s + (spent.get(c.name) ?? 0), 0);
-  const left = totalLimit - totalSpent;
-  const daysLeft = daysLeftInMonth();
-  const perDay = Math.floor(Math.max(left, 0) / daysLeft);
-  const aheadOfPace = totalLimit > 0 && totalSpent > totalLimit * monthProgress();
+  const month = monthStatus(data.categories, data.transactions);
 
   const row = (c: Category) => {
     const s = spent.get(c.name) ?? 0;
@@ -51,7 +46,7 @@ export const BudgetView = () => {
           onClick={() => setEditing(c)}
           className="flex w-full items-center gap-3 px-4 py-3.5 text-left active:bg-muted focus-visible:bg-muted focus-visible:outline-none"
         >
-          <CategoryIcon icon={c.icon} className="h-5 w-5 shrink-0 text-primary" />
+          <CategoryBadge id={c.id} icon={c.icon} />
           <div className="min-w-0 flex-1">
             <div className="flex items-baseline justify-between gap-2">
               <span className="truncate font-semibold">{c.name}</span>
@@ -64,7 +59,7 @@ export const BudgetView = () => {
             </div>
             {c.monthlyLimit !== null && (
               <>
-                <PaceBar spent={s} limit={c.monthlyLimit} className="mt-2" />
+                <PaceBar spent={s} limit={c.monthlyLimit} catId={c.id} className="mt-2" />
                 {(state === "near" || state === "over") && (
                   <p className={cn("mt-1.5 text-xs font-medium", state === "over" ? "text-destructive" : "text-warning")}>
                     {STATE_TEXT[state]}
@@ -84,33 +79,33 @@ export const BudgetView = () => {
       <section className="mt-6">
         <h2 className="px-1 font-display text-lg font-semibold">{title}</h2>
         {hint && <p className="px-1 text-sm text-muted-foreground">{hint}</p>}
-        <ul className="mt-2 divide-y divide-border overflow-hidden rounded-2xl border border-border bg-card">{list.map(row)}</ul>
+        <ul className="mt-2 divide-y divide-border overflow-hidden rounded-3xl bg-card shadow-[0_2px_12px_-4px_hsl(var(--foreground)/0.12)]">{list.map(row)}</ul>
       </section>
     );
 
   return (
     <div className="h-full overflow-y-auto px-4 pb-8 pt-2">
-      <section className="px-1">
-        <p className="text-sm text-muted-foreground">Left to spend in {format(new Date(), "MMMM")}</p>
-        <p className={cn("font-display text-5xl font-semibold tracking-tight tabular", left < 0 && "text-destructive")}>
-          {formatMoney(left, currency)}
-        </p>
-        {totalLimit > 0 ? (
+      <section className="flex items-center gap-4 rounded-3xl bg-card p-5 shadow-[0_2px_12px_-4px_hsl(var(--foreground)/0.12)]">
+        <MonthRing limit={month.limit} spent={month.spent} pace={month.pace} size={96} />
+        <div className="min-w-0 flex-1">
+          <p className="text-sm text-muted-foreground">Left to spend in {format(new Date(), "MMMM")}</p>
+          <p className={cn("font-display text-3xl font-semibold leading-tight tabular", month.left < 0 && "text-destructive")}>
+            {formatMoney(month.left, currency)}
+          </p>
           <p className="mt-1 text-sm text-muted-foreground">
-            {left > 0 ? (
+            {month.limit === 0 ? (
+              "Give a category a monthly limit to start."
+            ) : month.left > 0 ? (
               <>
-                About <span className="font-semibold text-foreground tabular">{formatMoney(perDay, currency)}</span> a day for
-                the {daysLeft} {daysLeft === 1 ? "day" : "days"} left.
-                {aheadOfPace && " You're spending faster than the month is passing."}
+                About <span className="font-semibold text-foreground tabular">{formatMoney(month.perDay, currency)}</span> a day
+                for {month.daysLeft} {month.daysLeft === 1 ? "day" : "days"}.
+                {month.pace === "fast" && " A bit faster than the month."}
               </>
             ) : (
-              "You've used all your limits for this month."
+              "All limits used for this month."
             )}
           </p>
-        ) : (
-          <p className="mt-1 text-sm text-muted-foreground">Set a monthly limit on a category to see what's left.</p>
-        )}
-        {totalLimit > 0 && <PaceBar spent={totalSpent} limit={totalLimit} className="mt-4 h-3" />}
+        </div>
       </section>
 
       {section("With a limit", limited)}
@@ -122,14 +117,14 @@ export const BudgetView = () => {
         <button
           type="button"
           onClick={() => setAdding("expense")}
-          className="flex items-center justify-center gap-2 rounded-2xl border border-dashed border-border py-3.5 text-sm font-semibold text-primary active:bg-muted"
+          className="flex items-center justify-center gap-2 rounded-3xl border-2 border-dashed border-border py-4 text-sm font-semibold text-primary active:scale-[0.98]"
         >
           <Plus className="h-4 w-4" aria-hidden /> Spending category
         </button>
         <button
           type="button"
           onClick={() => setAdding("income")}
-          className="flex items-center justify-center gap-2 rounded-2xl border border-dashed border-border py-3.5 text-sm font-semibold text-primary active:bg-muted"
+          className="flex items-center justify-center gap-2 rounded-3xl border-2 border-dashed border-border py-4 text-sm font-semibold text-primary active:scale-[0.98]"
         >
           <Plus className="h-4 w-4" aria-hidden /> Income category
         </button>

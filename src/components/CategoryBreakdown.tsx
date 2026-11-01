@@ -10,7 +10,7 @@ interface CategoryBreakdownProps {
   currency: string;
 }
 type ViewMode = "daily" | "monthly";
-const COLORS = ["hsl(231, 61%, 49%)", "hsl(160, 64%, 34%)", "hsl(40, 87%, 45%)", "hsl(8, 62%, 47%)", "hsl(200, 70%, 45%)", "hsl(280, 45%, 50%)", "hsl(221, 41%, 30%)", "hsl(100, 12%, 60%)"];
+const COLORS = ["hsl(246, 90%, 63%)", "hsl(4, 92%, 62%)", "hsl(36, 95%, 52%)", "hsl(152, 60%, 44%)", "hsl(204, 88%, 56%)", "hsl(330, 82%, 62%)", "hsl(174, 72%, 40%)", "hsl(262, 83%, 66%)"];
 export const CategoryBreakdown = ({
   transactions,
   currency
@@ -39,7 +39,7 @@ export const CategoryBreakdown = ({
     value
   })).sort((a, b) => b.value - a.value);
   const totalExpenses = chartData.reduce((sum, item) => sum + item.value, 0);
-  return <Card className="rounded-2xl border-border shadow-none">
+  return <Card className="rounded-3xl border-0 shadow-[0_2px_12px_-4px_hsl(var(--foreground)/0.12)]">
       <CardHeader className="pb-3">
         <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
           <CardTitle className="font-display text-lg">Spending by Category</CardTitle>

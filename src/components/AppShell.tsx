@@ -61,7 +61,7 @@ export const AppShell = () => {
       </header>
 
       <main className="min-h-0 flex-1">
-        {tab === "log" && <QuickAdd />}
+        {tab === "log" && <QuickAdd onOpenBudget={() => setTab("budget")} />}
         {tab === "budget" && <BudgetView />}
         {tab === "history" && (
           <Suspense fallback={null}>
@@ -70,7 +70,7 @@ export const AppShell = () => {
         )}
       </main>
 
-      <nav className="shrink-0 border-t border-border bg-card pb-safe" aria-label="Main">
+      <nav className="shrink-0 bg-card pb-safe shadow-[0_-4px_16px_-8px_hsl(var(--foreground)/0.12)]" aria-label="Main">
         <ul className="grid grid-cols-3">
           {TABS.map(({ id, label, icon: Icon }) => (
             <li key={id}>
@@ -79,11 +79,13 @@ export const AppShell = () => {
                 onClick={() => setTab(id)}
                 aria-current={tab === id ? "page" : undefined}
                 className={cn(
-                  "flex h-14 w-full flex-col items-center justify-center gap-0.5 text-xs font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring",
+                  "flex h-16 w-full flex-col items-center justify-center gap-1 text-xs font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring",
                   tab === id ? "text-primary" : "text-muted-foreground",
                 )}
               >
-                <Icon className="h-5 w-5" strokeWidth={tab === id ? 2.25 : 1.75} aria-hidden />
+                <span className={cn("grid h-8 w-14 place-items-center rounded-full transition-colors", tab === id && "bg-secondary")}>
+                  <Icon className="h-5 w-5" strokeWidth={tab === id ? 2.25 : 1.75} aria-hidden />
+                </span>
                 {label}
               </button>
             </li>
