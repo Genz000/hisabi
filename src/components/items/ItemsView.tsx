@@ -13,8 +13,8 @@ const STATE_TEXT = (used: number, target: number) => {
   const state = itemState(used, target);
   if (state === "over") return { text: `${used - target} over`, className: "text-destructive" };
   if (state === "done") return { text: "All used", className: "text-warning-ink" };
-  if (state === "ahead") return { text: `${target - used} left, ahead of the month`, className: "text-warning-ink" };
-  return { text: `${target - used} left`, className: "" };
+  if (state === "ahead") return { text: `${target - used} left, ahead of the month`, className: "font-semibold text-warning-ink" };
+  return { text: `${target - used} left`, className: "font-semibold text-info" };
 };
 
 /** Dots for small allowances (4 Kinder Bueno), a bar for big ones. */
@@ -98,7 +98,18 @@ export const ItemsView = () => {
   return (
     <div className="h-full overflow-y-auto px-4 pb-8 pt-2">
       <section className="rounded-3xl bg-card p-5 shadow-[0_2px_12px_-4px_hsl(var(--foreground)/0.12)]">
-        <p className="type-meta">Monthly items in {format(new Date(), "MMMM")}</p>
+        <div className="flex items-center justify-between gap-3">
+          <p className="type-meta">Monthly items in {format(new Date(), "MMMM")}</p>
+          {data.items.length > 0 && (
+            <button
+              type="button"
+              onClick={() => setAdding(true)}
+              className="type-label -my-1 flex shrink-0 items-center gap-1.5 rounded-full bg-primary py-2 pl-3 pr-4 text-primary-foreground shadow-sm active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            >
+              <Plus className="h-4 w-4" strokeWidth={2.5} aria-hidden /> Add item
+            </button>
+          )}
+        </div>
         {data.items.length === 0 ? (
           <>
             <p className="type-card mt-1">Set an allowance</p>
@@ -106,6 +117,13 @@ export const ItemsView = () => {
               For things you buy often, like 4 Kinder Bueno a month. Tick one each time you buy it and see how many are
               left.
             </p>
+            <button
+              type="button"
+              onClick={() => setAdding(true)}
+              className="type-label mt-4 flex w-full items-center justify-center gap-2 rounded-2xl bg-primary py-3.5 text-primary-foreground active:scale-[0.98]"
+            >
+              <Plus className="h-4 w-4" strokeWidth={2.5} aria-hidden /> Add your first item
+            </button>
           </>
         ) : (
           <>
@@ -173,13 +191,6 @@ export const ItemsView = () => {
         </section>
       ))}
 
-      <button
-        type="button"
-        onClick={() => setAdding(true)}
-        className="type-label mt-6 flex w-full items-center justify-center gap-2 rounded-3xl border-2 border-dashed border-border py-4 text-primary active:scale-[0.98]"
-      >
-        <Plus className="h-4 w-4" aria-hidden /> {data.items.length === 0 ? "Add your first item" : "Add item"}
-      </button>
 
       <ItemSheet
         open={editing !== null || adding}

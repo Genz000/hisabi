@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
-import { format, parseISO, subDays } from "date-fns";
-import { CloudOff } from "lucide-react";
+import { format, getDaysInMonth, parseISO, subDays, subMonths } from "date-fns";
+import { ArrowDownLeft, ArrowUpRight, CloudOff } from "lucide-react";
 import { CategoryBadge } from "@/components/CategoryIcon";
 import { WeeklyRecap } from "@/components/WeeklyRecap";
 import { Money } from "@/components/Money";
@@ -8,7 +8,7 @@ import { SpendingChart } from "@/components/SpendingChart";
 import { CategoryBreakdown } from "@/components/CategoryBreakdown";
 import { TransactionSheet } from "./TransactionSheet";
 import { useHisabi } from "@/data/HisabiStore";
-import { balanceOf, formatMoney, monthOf, todayISO, toISODate, type Transaction } from "@/lib/hisabi";
+import { balanceOf, formatMoney, monthOf, monthStatus, todayISO, toISODate, type Transaction } from "@/lib/hisabi";
 import { cn } from "@/lib/utils";
 
 const PAGE = 60;
@@ -33,6 +33,17 @@ export const HistoryView = () => {
   const out = thisMonth.filter((t) => t.type === "expense").reduce((s, t) => s + t.amount, 0);
   const inc = thisMonth.filter((t) => t.type === "income").reduce((s, t) => s + t.amount, 0);
   const balance = balanceOf(data.transactions, startingBalance);
+  const net = inc - out;
+
+  // Last month up to the same day, so early-month numbers compare fairly
+  const lastMonthDay = toISODate(subMonths(new Date(), 1));
+  const lastMonthSoFar = data.transactions
+    .filter((t) => t.type === "expense" && monthOf(t.date) === monthOf(lastMonthDay) && t.date <= lastMonthDay)
+    .reduce((s, t) => s + t.amount, 0);
+  const spentChange = lastMonthSoFar > 0 ? (out - lastMonthSoFar) / lastMonthSoFar : null;
+
+  const limits = monthStatus(data.categories, data.transactions).limit;
+  const dailyBudget = limits > 0 ? limits / getDaysInMonth(new Date()) : null;
 
   const list = data.transactions.filter((t) => filter === "all" || t.type === filter);
   const days = useMemo(() => {
@@ -48,21 +59,47 @@ export const HistoryView = () => {
 
   return (
     <div className="h-full overflow-y-auto px-4 pb-8 pt-2">
-      <section className="px-1">
-        <p className="type-meta px-1">Balance</p>
-        <p className={cn("type-screen mt-1 px-1", balance < 0 && "text-destructive")}>
-          <Money value={balance} currency={currency} />
-        </p>
-        <dl className="mt-3 grid grid-cols-2 gap-2">
-          <div className="rounded-3xl bg-card px-4 py-3 shadow-[0_2px_12px_-4px_hsl(var(--foreground)/0.12)]">
-            <dt className="type-meta">Spent in {format(new Date(), "MMMM")}</dt>
-            <dd className="type-stat mt-1">
+      <section className="overflow-hidden rounded-3xl bg-card shadow-[0_2px_12px_-4px_hsl(var(--foreground)/0.12)]">
+        <div className="px-5 pb-4 pt-5">
+          <p className="type-meta">Balance</p>
+          <p className={cn("type-screen mt-1", balance < 0 && "text-destructive")}>
+            <Money value={balance} currency={currency} />
+          </p>
+          {(out > 0 || inc > 0) && (
+            <p className="mt-2 text-sm text-muted-foreground">
+              <span className={cn("font-semibold tabular", net >= 0 ? "text-success" : "text-foreground")}>
+                {net >= 0 ? "+" : "−"}
+                {formatMoney(Math.abs(net), currency)}
+              </span>{" "}
+              in {format(new Date(), "MMMM")} so far
+            </p>
+          )}
+        </div>
+        <dl className="grid grid-cols-2 divide-x divide-border border-t border-border">
+          <div className="px-5 py-4">
+            <dt className="type-meta flex items-center gap-1.5">
+              <span className="grid h-5 w-5 place-items-center rounded-full bg-primary/10 text-primary" aria-hidden>
+                <ArrowUpRight className="h-3.5 w-3.5" strokeWidth={2.5} />
+              </span>
+              Spent
+            </dt>
+            <dd className="type-stat mt-2">
               <Money value={out} currency={currency} />
             </dd>
+            {spentChange !== null && (
+              <dd className={cn("type-meta mt-1", spentChange > 0.1 ? "text-warning-ink" : spentChange < 0 && "text-success")}>
+                {Math.abs(Math.round(spentChange * 100))}% {spentChange > 0 ? "more" : "less"} than last month
+              </dd>
+            )}
           </div>
-          <div className="rounded-3xl bg-card px-4 py-3 shadow-[0_2px_12px_-4px_hsl(var(--foreground)/0.12)]">
-            <dt className="type-meta">Received</dt>
-            <dd className="type-stat mt-1 text-success">
+          <div className="px-5 py-4">
+            <dt className="type-meta flex items-center gap-1.5">
+              <span className="grid h-5 w-5 place-items-center rounded-full bg-success/10 text-success" aria-hidden>
+                <ArrowDownLeft className="h-3.5 w-3.5" strokeWidth={2.5} />
+              </span>
+              Received
+            </dt>
+            <dd className="type-stat mt-2 text-success">
               <Money value={inc} currency={currency} />
             </dd>
           </div>
@@ -159,8 +196,8 @@ export const HistoryView = () => {
       {data.transactions.length > 0 && (
         <section className="mt-8 space-y-3">
           <h2 className="type-title px-1">Trends</h2>
-          <SpendingChart transactions={data.transactions} currency={currency} />
-          <CategoryBreakdown transactions={data.transactions} currency={currency} />
+          <SpendingChart transactions={data.transactions} currency={currency} dailyBudget={dailyBudget} />
+          <CategoryBreakdown transactions={data.transactions} categories={data.categories} currency={currency} />
         </section>
       )}
 

@@ -37,6 +37,8 @@
     --warning-foreground: 240 33% 22%;
     /* warning as text on white needs a darker shade to reach 4.5:1 */
     --warning-ink: 32 85% 33%;
+    /* "left" counts: a clear blue that reads at 4.5:1 on white */
+    --info: 212 92% 45%;
 
     --destructive: 3 85% 62%;
     --destructive-foreground: 0 0% 100%;

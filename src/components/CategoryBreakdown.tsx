@@ -1,99 +1,155 @@
-import { useState } from "react";
-import { parseISO } from "date-fns";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { formatMoney, type Transaction } from "@/lib/hisabi";
-import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from "recharts";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Label } from "@/components/ui/label";
-interface CategoryBreakdownProps {
-  transactions: Transaction[];
-  currency: string;
-}
-type ViewMode = "daily" | "monthly";
-const COLORS = ["hsl(246, 90%, 63%)", "hsl(4, 92%, 62%)", "hsl(36, 95%, 52%)", "hsl(152, 60%, 44%)", "hsl(204, 88%, 56%)", "hsl(330, 82%, 62%)", "hsl(174, 72%, 40%)", "hsl(262, 83%, 66%)"];
+import { useMemo, useState } from "react";
+import { format } from "date-fns";
+import { Cell, Pie, PieChart, ResponsiveContainer } from "recharts";
+import { CategoryBadge } from "@/components/CategoryIcon";
+import { Money } from "@/components/Money";
+import { Segmented } from "@/components/Segmented";
+import { categoryHue } from "@/lib/colors";
+import { formatNumber, monthOf, todayISO, type Category, type Transaction } from "@/lib/hisabi";
+import { cn } from "@/lib/utils";
+
+type View = "month" | "all";
+
+const SHOWN = 6;
+
+/** Where the money went: a donut with the total in the middle and a ranked list in category colours. */
 export const CategoryBreakdown = ({
   transactions,
-  currency
-}: CategoryBreakdownProps) => {
-  const [viewMode, setViewMode] = useState<ViewMode>("daily");
+  categories,
+  currency,
+}: {
+  transactions: Transaction[];
+  categories: Category[];
+  currency: string;
+}) => {
+  const [view, setView] = useState<View>("month");
+  const [expanded, setExpanded] = useState(false);
+  const [focus, setFocus] = useState<string | null>(null);
 
-  // Filter transactions for current month if in daily mode
-  const now = new Date();
-  const currentMonth = now.getMonth();
-  const currentYear = now.getFullYear();
-  const filteredTransactions = viewMode === "daily" ? transactions.filter(t => {
-    const transactionDate = parseISO(t.date);
-    return transactionDate.getMonth() === currentMonth && transactionDate.getFullYear() === currentYear;
-  }) : transactions;
-
-  // Group expenses by category
-  const expensesByCategory = filteredTransactions.filter(t => t.type === "expense").reduce((acc, transaction) => {
-    if (!acc[transaction.category]) {
-      acc[transaction.category] = 0;
+  const rows = useMemo(() => {
+    const month = monthOf(todayISO());
+    const byName = new Map(categories.filter((c) => c.kind === "expense").map((c) => [c.name, c]));
+    const totals = new Map<string, number>();
+    for (const t of transactions) {
+      if (t.type !== "expense" || (view === "month" && monthOf(t.date) !== month)) continue;
+      totals.set(t.category, (totals.get(t.category) ?? 0) + t.amount);
     }
-    acc[transaction.category] += transaction.amount;
-    return acc;
-  }, {} as Record<string, number>);
-  const chartData = Object.entries(expensesByCategory).map(([name, value]) => ({
-    name,
-    value
-  })).sort((a, b) => b.value - a.value);
-  const totalExpenses = chartData.reduce((sum, item) => sum + item.value, 0);
-  return <Card className="rounded-3xl border-0 shadow-[0_2px_12px_-4px_hsl(var(--foreground)/0.12)]">
-      <CardHeader className="pb-3">
-        <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
-          <CardTitle className="type-title">Spending by Category</CardTitle>
-          <RadioGroup value={viewMode} onValueChange={value => setViewMode(value as ViewMode)} className="flex gap-3">
-            <div className="flex items-center gap-1.5">
-              <RadioGroupItem value="daily" id="daily-category" />
-              <Label htmlFor="daily-category" className="cursor-pointer text-[0.8125rem] font-medium">This month</Label>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <RadioGroupItem value="monthly" id="monthly-category" />
-              <Label htmlFor="monthly-category" className="cursor-pointer text-[0.8125rem] font-medium">All time</Label>
-            </div>
-          </RadioGroup>
-        </div>
-      </CardHeader>
-      <CardContent>
-        {chartData.length === 0 ? <div className="h-[200px] flex items-center justify-center text-sm text-muted-foreground">
-            No expense data available
-          </div> : <>
-            <ResponsiveContainer width="100%" height={200}>
-              <PieChart className="pt-0 mt-[20px]">
-                <Pie data={chartData} cx="50%" cy="50%" labelLine={false} label={({
-              name,
-              percent
-            }) => `${name} ${(percent * 100).toFixed(0)}%`} outerRadius={60} fill="#8884d8" dataKey="value">
-                  {chartData.map((entry, index) => <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />)}
+    return [...totals.entries()]
+      .map(([name, value]) => {
+        const c = byName.get(name);
+        return { name, value, id: c?.id, icon: c?.icon ?? null, color: c ? `hsl(${categoryHue(c.id)})` : "hsl(var(--muted-foreground))" };
+      })
+      .sort((a, b) => b.value - a.value);
+  }, [transactions, categories, view]);
+
+  const total = rows.reduce((s, r) => s + r.value, 0);
+  const focused = rows.find((r) => r.name === focus);
+  const visible = expanded ? rows : rows.slice(0, SHOWN);
+
+  return (
+    <section className="rounded-3xl bg-card p-4 shadow-[0_2px_12px_-4px_hsl(var(--foreground)/0.12)]">
+      <div className="flex items-start justify-between gap-3">
+        <h3 className="type-title">Where it went</h3>
+        <Segmented<View>
+          label="Category period"
+          value={view}
+          onChange={(v) => {
+            setView(v);
+            setFocus(null);
+          }}
+          options={[
+            ["month", format(new Date(), "MMMM")],
+            ["all", "All time"],
+          ]}
+          className="shrink-0"
+        />
+      </div>
+
+      {rows.length === 0 ? (
+        <p className="py-12 text-center text-sm text-muted-foreground">No spending here yet.</p>
+      ) : (
+        <>
+          <div className="relative mx-auto mt-2 h-52 w-52">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={rows}
+                  dataKey="value"
+                  nameKey="name"
+                  innerRadius="68%"
+                  outerRadius="100%"
+                  paddingAngle={rows.length > 1 ? 2 : 0}
+                  cornerRadius={6}
+                  stroke="none"
+                  startAngle={90}
+                  endAngle={-270}
+                  isAnimationActive={false}
+                  onClick={(d: { name: string }) => setFocus((f) => (f === d.name ? null : d.name))}
+                >
+                  {rows.map((r) => (
+                    <Cell
+                      key={r.name}
+                      fill={r.color}
+                      className="cursor-pointer outline-none transition-opacity"
+                      opacity={focus && focus !== r.name ? 0.25 : 1}
+                    />
+                  ))}
                 </Pie>
-                <Tooltip contentStyle={{
-              backgroundColor: "hsl(var(--card))",
-              border: "1px solid hsl(var(--border))",
-              borderRadius: "8px"
-            }} formatter={(value: number) => formatMoney(value, currency)} />
-                
               </PieChart>
             </ResponsiveContainer>
-            <div className="mt-6 space-y-1.5">
-              {chartData.map((item, index) => <div key={item.name} className="flex items-center justify-between text-xs">
-                  <div className="flex items-center gap-2">
-                    <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{
-                backgroundColor: COLORS[index % COLORS.length]
-              }} />
-                    <span className="text-foreground">{item.name}</span>
-                  </div>
-                  <div className="text-right">
-                    <span className="font-semibold text-foreground">
-                      {formatMoney(item.value, currency)}
-                    </span>
-                    <span className="text-muted-foreground ml-1.5">
-                      ({(item.value / totalExpenses * 100).toFixed(1)}%)
-                    </span>
-                  </div>
-                </div>)}
+            <div className="pointer-events-none absolute inset-0 grid place-items-center text-center">
+              <div className="max-w-[60%]">
+                <p className="type-meta truncate">{focused ? focused.name : view === "month" ? "Spent" : "All time"}</p>
+                <p className="type-stat mt-0.5 tabular">{formatNumber(Math.round(focused ? focused.value : total))}</p>
+                <p className="type-meta">{focused ? `${Math.round((focused.value / total) * 100)}%` : currency}</p>
+              </div>
             </div>
-          </>}
-      </CardContent>
-    </Card>;
+          </div>
+
+          <ul className="mt-4 space-y-1">
+            {visible.map((r) => {
+              const share = r.value / total;
+              return (
+                <li key={r.name}>
+                  <button
+                    type="button"
+                    onClick={() => setFocus((f) => (f === r.name ? null : r.name))}
+                    aria-pressed={focus === r.name}
+                    className={cn(
+                      "flex w-full items-center gap-3 rounded-2xl px-2 py-2 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                      focus === r.name && "bg-muted",
+                    )}
+                  >
+                    <CategoryBadge id={r.id} icon={r.icon} size="sm" />
+                    <span className="min-w-0 flex-1">
+                      <span className="flex items-baseline justify-between gap-2">
+                        <span className="type-label truncate">{r.name}</span>
+                        <Money value={r.value} currency={currency} className="type-label shrink-0" />
+                      </span>
+                      <span className="mt-1.5 flex items-center gap-2">
+                        <span className="h-1.5 flex-1 overflow-hidden rounded-full bg-muted">
+                          <span className="block h-full rounded-full" style={{ width: `${Math.max(share * 100, 2)}%`, background: r.color }} />
+                        </span>
+                        <span className="type-meta w-9 shrink-0 text-right tabular">{Math.round(share * 100)}%</span>
+                      </span>
+                    </span>
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+
+          {rows.length > SHOWN && (
+            <button
+              type="button"
+              onClick={() => setExpanded((e) => !e)}
+              className="type-label mt-2 w-full rounded-2xl py-2.5 text-primary active:bg-muted"
+            >
+              {expanded ? "Show less" : `Show all ${rows.length}`}
+            </button>
+          )}
+        </>
+      )}
+    </section>
+  );
 };
