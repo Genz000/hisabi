@@ -21,7 +21,7 @@ const dayLabel = (iso: string) => {
   return format(parseISO(iso), "EEE d MMM");
 };
 
-/** Slides up after picking a category: amount on a number pad, optional note and date, then Save. */
+/** Slides up after picking a category: amount on a number pad, optional note and date, then Add. */
 export const AmountSheet = ({
   category,
   left,
@@ -167,7 +167,9 @@ export const AmountSheet = ({
               onClick={save}
               className="mt-3 h-14 w-full rounded-2xl font-display text-xl font-semibold text-white transition-transform cat-bg active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
             >
-              {value > 0 ? `Save ${formatMoney(value, currency)}` : "Enter an amount"}
+              {value > 0
+                ? `Add ${formatMoney(value, currency)} ${category?.kind === "income" ? "income" : "expense"}`
+                : "Enter an amount"}
             </button>
           </div>
         )}
