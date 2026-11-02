@@ -1,5 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
-import type { Category, Kind, Profile, Transaction } from "@/lib/hisabi";
+import type { Category, Item, ItemLog, Kind, Profile, Transaction } from "@/lib/hisabi";
 
 export interface Snapshot {
   userId: string;
@@ -8,6 +8,8 @@ export interface Snapshot {
   categories: Category[];
   transactions: Transaction[];
   checkIns: string[];
+  items: Item[];
+  itemLogs: ItemLog[];
 }
 
 /** Everything the app reads and writes. The Supabase one is real; the demo one lives in memory. */
@@ -19,6 +21,10 @@ export interface Backend {
   insertCheckIn(date: string): Promise<void>;
   saveCategory(c: Category): Promise<void>;
   renameCategory(id: string, name: string): Promise<void>;
+  saveItem(i: Item): Promise<void>;
+  deleteItem(id: string): Promise<void>;
+  insertItemLog(l: ItemLog): Promise<void>;
+  deleteItemLog(id: string): Promise<void>;
   updateProfile(patch: Partial<Profile>): Promise<void>;
   uploadAvatar(blob: Blob): Promise<string>;
   signOut(): Promise<void>;
@@ -60,6 +66,22 @@ const toCategory = (row: {
   archived: row.archived,
 });
 
+const toItem = (row: {
+  id: string;
+  name: string;
+  category_id: string | null;
+  monthly_target: number;
+  price: number | null;
+  sort_order: number;
+}): Item => ({
+  id: row.id,
+  name: row.name,
+  categoryId: row.category_id,
+  monthlyTarget: row.monthly_target,
+  price: row.price === null ? null : Number(row.price),
+  sortOrder: row.sort_order,
+});
+
 const check = <T extends { error: { message: string; code?: string } | null }>(res: T) => {
   if (res.error) throw res.error;
   return res;
@@ -67,16 +89,20 @@ const check = <T extends { error: { message: string; code?: string } | null }>(r
 
 export const createSupabaseBackend = (userId: string, email: string | null): Backend => ({
   async load() {
-    const [profile, categories, transactions, checkIns] = await Promise.all([
+    const [profile, categories, transactions, checkIns, items, itemLogs] = await Promise.all([
       supabase.from("profiles").select("currency, starting_balance, avatar_url").eq("user_id", userId).maybeSingle(),
       supabase.from("categories").select("*").order("sort_order"),
       supabase.from("transactions").select("*").order("date", { ascending: false }).order("created_at", { ascending: false }),
       supabase.from("check_ins").select("date"),
+      supabase.from("items").select("*").order("sort_order"),
+      supabase.from("item_logs").select("*").order("date", { ascending: false }),
     ]);
     check(profile);
     check(categories);
     check(transactions);
     check(checkIns);
+    check(items);
+    check(itemLogs);
     return {
       userId,
       email,
@@ -88,6 +114,14 @@ export const createSupabaseBackend = (userId: string, email: string | null): Bac
       categories: (categories.data ?? []).map(toCategory),
       transactions: (transactions.data ?? []).map(toTransaction),
       checkIns: (checkIns.data ?? []).map((c) => c.date),
+      items: (items.data ?? []).map(toItem),
+      itemLogs: (itemLogs.data ?? []).map((l) => ({
+        id: l.id,
+        itemId: l.item_id,
+        date: l.date,
+        transactionId: l.transaction_id,
+        createdAt: l.created_at,
+      })),
     };
   },
 
@@ -146,6 +180,39 @@ export const createSupabaseBackend = (userId: string, email: string | null): Bac
 
   async renameCategory(id, name) {
     check(await supabase.rpc("rename_category", { _category_id: id, _new_name: name }));
+  },
+
+  async saveItem(i) {
+    check(
+      await supabase.from("items").upsert({
+        id: i.id,
+        user_id: userId,
+        name: i.name,
+        category_id: i.categoryId,
+        monthly_target: i.monthlyTarget,
+        price: i.price,
+        sort_order: i.sortOrder,
+      }),
+    );
+  },
+
+  async deleteItem(id) {
+    check(await supabase.from("items").delete().eq("id", id));
+  },
+
+  async insertItemLog(l) {
+    const res = await supabase.from("item_logs").insert({
+      id: l.id,
+      user_id: userId,
+      item_id: l.itemId,
+      date: l.date,
+      transaction_id: l.transactionId,
+    });
+    if (res.error && res.error.code !== "23505") throw res.error;
+  },
+
+  async deleteItemLog(id) {
+    check(await supabase.from("item_logs").delete().eq("id", id));
   },
 
   async updateProfile(patch) {

@@ -71,7 +71,7 @@ export const HistoryView = () => {
 
       {data.transactions.length > 0 && (
         <div className="mt-4">
-          <WeeklyRecap transactions={data.transactions} checkIns={data.checkIns} currency={currency} />
+          <WeeklyRecap data={data} currency={currency} />
         </div>
       )}
 

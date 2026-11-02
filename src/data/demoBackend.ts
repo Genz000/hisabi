@@ -1,6 +1,6 @@
 import { subDays } from "date-fns";
 import type { Backend, Snapshot } from "./backend";
-import { toISODate, type Category, type Kind, type Transaction } from "@/lib/hisabi";
+import { toISODate, type Category, type Item, type ItemLog, type Kind, type Transaction } from "@/lib/hisabi";
 
 // In-memory data for the dev-only /demo route, so the signed-in screens can be
 // reviewed without an account. Nothing here touches Supabase.
@@ -53,6 +53,20 @@ const seed = (): Snapshot => {
     tx(12, "Paycheck", 9000, "", "income"),
   ];
 
+  const byName = (name: string) => categories.find((c) => c.name === name)?.id ?? null;
+  const items: Item[] = [
+    { id: crypto.randomUUID(), name: "Kinder Bueno", categoryId: byName("Food"), monthlyTarget: 4, price: 12, sortOrder: 1 },
+    { id: crypto.randomUUID(), name: "Coffee out", categoryId: byName("Food"), monthlyTarget: 8, price: 18, sortOrder: 2 },
+    { id: crypto.randomUUID(), name: "Cinema", categoryId: byName("Nader"), monthlyTarget: 2, price: null, sortOrder: 3 },
+  ];
+  const log = (item: Item, daysAgo: number): ItemLog => ({
+    id: crypto.randomUUID(),
+    itemId: item.id,
+    date: toISODate(subDays(today, daysAgo)),
+    transactionId: null,
+  });
+  const itemLogs = [log(items[0], 0), log(items[0], 1), log(items[0], 3), log(items[1], 2), log(items[2], 5)];
+
   return {
     userId: "demo",
     email: "demo@hisabi.local",
@@ -60,6 +74,8 @@ const seed = (): Snapshot => {
     categories,
     transactions,
     checkIns: [toISODate(subDays(today, 8)), toISODate(subDays(today, 10)), toISODate(subDays(today, 11))],
+    items,
+    itemLogs,
   };
 };
 
@@ -103,6 +119,26 @@ export const createDemoBackend = (): Backend => {
         t.category === c.name && t.type === c.kind ? { ...t, category: name } : t,
       );
       c.name = name;
+    },
+    async saveItem(i) {
+      await wait();
+      const at = data.items.findIndex((x) => x.id === i.id);
+      if (at >= 0) data.items[at] = i;
+      else data.items.push(i);
+    },
+    async deleteItem(id) {
+      await wait();
+      data.items = data.items.filter((i) => i.id !== id);
+      data.itemLogs = data.itemLogs.filter((l) => l.itemId !== id);
+    },
+    async insertItemLog(l) {
+      await wait();
+      if (localStorage.getItem("hisabi.demo.offline") === "1") throw new Error("Offline (demo)");
+      data.itemLogs.unshift(l);
+    },
+    async deleteItemLog(id) {
+      await wait();
+      data.itemLogs = data.itemLogs.filter((l) => l.id !== id);
     },
     async updateProfile(patch) {
       await wait();

@@ -1,8 +1,9 @@
 import { lazy, Suspense, useState } from "react";
-import { Flame, History, PenLine, PieChart } from "lucide-react";
+import { Flame, History, PenLine, PieChart, ShoppingBasket } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { QuickAdd } from "@/components/log/QuickAdd";
 import { BudgetView } from "@/components/budget/BudgetView";
+import { ItemsView } from "@/components/items/ItemsView";
 import { SettingsSheet } from "@/components/SettingsSheet";
 import { useHisabi } from "@/data/HisabiStore";
 import { currentStreak, isActiveToday } from "@/lib/hisabi";
@@ -14,11 +15,11 @@ const HistoryView = lazy(() => import("@/components/history/HistoryView").then((
 const TABS = [
   { id: "log", label: "Log", icon: PenLine },
   { id: "budget", label: "Budget", icon: PieChart },
+  { id: "items", label: "Items", icon: ShoppingBasket },
   { id: "history", label: "History", icon: History },
 ] as const;
 
 type Tab = (typeof TABS)[number]["id"];
-
 
 export const AppShell = () => {
   const { data } = useHisabi();
@@ -63,6 +64,7 @@ export const AppShell = () => {
       <main className="min-h-0 flex-1">
         {tab === "log" && <QuickAdd onOpenBudget={() => setTab("budget")} />}
         {tab === "budget" && <BudgetView />}
+        {tab === "items" && <ItemsView />}
         {tab === "history" && (
           <Suspense fallback={null}>
             <HistoryView />
@@ -71,7 +73,7 @@ export const AppShell = () => {
       </main>
 
       <nav className="shrink-0 bg-card pb-safe shadow-[0_-4px_16px_-8px_hsl(var(--foreground)/0.12)]" aria-label="Main">
-        <ul className="grid grid-cols-3">
+        <ul className="grid grid-cols-4">
           {TABS.map(({ id, label, icon: Icon }) => (
             <li key={id}>
               <button

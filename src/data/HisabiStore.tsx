@@ -1,6 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import type { Backend, Snapshot } from "./backend";
-import { todayISO, type Category, type Kind, type Profile, type Transaction } from "@/lib/hisabi";
+import { todayISO, type Category, type Item, type ItemLog, type Kind, type Profile, type Transaction } from "@/lib/hisabi";
 
 export interface NewTransaction {
   amount: number;
@@ -20,6 +20,11 @@ interface HisabiStore {
   checkIn(): Promise<void>;
   saveCategory(c: Category): Promise<void>;
   renameCategory(c: Category, name: string): Promise<void>;
+  saveItem(i: Item): Promise<void>;
+  deleteItem(id: string): Promise<void>;
+  /** Ticks one purchase. An item with a price also logs it as spending in its category. */
+  logItem(item: Item): Promise<ItemLog>;
+  unlogItem(log: ItemLog): Promise<void>;
   updateProfile(patch: Partial<Profile>): Promise<void>;
   uploadAvatar(blob: Blob): Promise<void>;
   signOut(): Promise<void>;
@@ -122,43 +127,48 @@ export const HisabiProvider = ({
 
   const store = useMemo<HisabiStore | null>(() => {
     if (!data) return null;
+
+    const addTransaction = async (input: NewTransaction): Promise<Transaction> => {
+      const t: Transaction = {
+        id: crypto.randomUUID(),
+        date: input.date ?? todayISO(),
+        amount: input.amount,
+        description: input.description ?? "",
+        category: input.category,
+        type: input.type,
+        createdAt: new Date().toISOString(),
+      };
+      patchTransactions((ts) => [t, ...ts].sort(byNewest));
+      try {
+        await backend.insertTransaction(t);
+        return t;
+      } catch {
+        setPending(t.id, true, t);
+        return { ...t, pending: true };
+      }
+    };
+
+    const deleteTransaction = async (id: string) => {
+      const userId = userIdRef.current;
+      const wasPending = userId ? readPending(userId).some((p) => p.id === id) : false;
+      patchTransactions((ts) => ts.filter((t) => t.id !== id));
+      if (wasPending) {
+        setPending(id, false);
+        return;
+      }
+      await backend.deleteTransaction(id);
+    };
+
+    const patchLogs = (fn: (list: ItemLog[]) => ItemLog[]) => setData((d) => (d ? { ...d, itemLogs: fn(d.itemLogs) } : d));
+
     return {
       data,
-
-      async addTransaction(input) {
-        const t: Transaction = {
-          id: crypto.randomUUID(),
-          date: input.date ?? todayISO(),
-          amount: input.amount,
-          description: input.description ?? "",
-          category: input.category,
-          type: input.type,
-          createdAt: new Date().toISOString(),
-        };
-        patchTransactions((ts) => [t, ...ts].sort(byNewest));
-        try {
-          await backend.insertTransaction(t);
-          return t;
-        } catch {
-          setPending(t.id, true, t);
-          return { ...t, pending: true };
-        }
-      },
+      addTransaction,
+      deleteTransaction,
 
       async updateTransaction(id, patch) {
         await backend.updateTransaction(id, patch);
         patchTransactions((ts) => ts.map((t) => (t.id === id ? { ...t, ...patch } : t)).sort(byNewest));
-      },
-
-      async deleteTransaction(id) {
-        const userId = userIdRef.current;
-        const wasPending = userId ? readPending(userId).some((p) => p.id === id) : false;
-        patchTransactions((ts) => ts.filter((t) => t.id !== id));
-        if (wasPending) {
-          setPending(id, false);
-          return;
-        }
-        await backend.deleteTransaction(id);
       },
 
       retryPending,
@@ -189,6 +199,55 @@ export const HisabiProvider = ({
             ),
           },
         );
+      },
+
+      async saveItem(i) {
+        await backend.saveItem(i);
+        setData((d) => {
+          if (!d) return d;
+          const exists = d.items.some((x) => x.id === i.id);
+          return { ...d, items: exists ? d.items.map((x) => (x.id === i.id ? i : x)) : [...d.items, i] };
+        });
+      },
+
+      async deleteItem(id) {
+        await backend.deleteItem(id);
+        setData((d) => d && { ...d, items: d.items.filter((i) => i.id !== id), itemLogs: d.itemLogs.filter((l) => l.itemId !== id) });
+      },
+
+      async logItem(item) {
+        const category = data.categories.find((c) => c.id === item.categoryId);
+        const t =
+          item.price && category
+            ? await addTransaction({ amount: item.price, category: category.name, type: "expense", description: item.name })
+            : null;
+        const log: ItemLog = {
+          id: crypto.randomUUID(),
+          itemId: item.id,
+          date: todayISO(),
+          transactionId: t?.id ?? null,
+          createdAt: new Date().toISOString(),
+        };
+        patchLogs((ls) => [log, ...ls]);
+        try {
+          await backend.insertItemLog(log);
+          return log;
+        } catch (e) {
+          patchLogs((ls) => ls.filter((l) => l.id !== log.id));
+          if (t) await deleteTransaction(t.id).catch(() => undefined);
+          throw e;
+        }
+      },
+
+      async unlogItem(log) {
+        patchLogs((ls) => ls.filter((l) => l.id !== log.id));
+        try {
+          await backend.deleteItemLog(log.id);
+        } catch (e) {
+          patchLogs((ls) => [log, ...ls]);
+          throw e;
+        }
+        if (log.transactionId) await deleteTransaction(log.transactionId).catch(() => undefined);
       },
 
       async updateProfile(patch) {

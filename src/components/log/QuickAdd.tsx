@@ -120,12 +120,7 @@ export const QuickAdd = ({ onOpenBudget }: { onOpenBudget: () => void }) => {
 
         {showRecap && (
           <div className="mt-3">
-            <WeeklyRecap
-              transactions={data.transactions}
-              checkIns={data.checkIns}
-              currency={currency}
-              onDismiss={hideRecap}
-            />
+            <WeeklyRecap data={data} currency={currency} onDismiss={hideRecap} />
           </div>
         )}
 

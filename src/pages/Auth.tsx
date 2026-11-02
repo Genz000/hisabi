@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { keepsSignedIn, setKeepSignedIn } from "@/integrations/supabase/authStorage";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -13,6 +15,7 @@ export default function Auth() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [sentTo, setSentTo] = useState<string | null>(null);
+  const [keep, setKeep] = useState(keepsSignedIn);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
@@ -24,6 +27,7 @@ export default function Auth() {
     e.preventDefault();
     setLoading(true);
     setError(null);
+    setKeepSignedIn(keep);
     try {
       if (isLogin) {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
@@ -97,6 +101,14 @@ export default function Auth() {
               />
               {!isLogin && <p className="text-sm text-muted-foreground">At least 6 characters.</p>}
             </div>
+            <label className="flex items-center gap-3 py-1 text-sm font-medium">
+              <Checkbox
+                checked={keep}
+                onCheckedChange={(v) => setKeep(v === true)}
+                className="h-5 w-5 rounded-md"
+              />
+              Keep me signed in
+            </label>
             {error && (
               <p className="text-sm text-destructive" role="alert">
                 {error}

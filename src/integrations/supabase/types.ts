@@ -71,6 +71,69 @@ export type Database = {
         }
         Relationships: []
       }
+      item_logs: {
+        Row: {
+          created_at: string
+          date: string
+          id: string
+          item_id: string
+          transaction_id: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          date: string
+          id?: string
+          item_id: string
+          transaction_id?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          date?: string
+          id?: string
+          item_id?: string
+          transaction_id?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      items: {
+        Row: {
+          category_id: string | null
+          created_at: string
+          id: string
+          monthly_target: number
+          name: string
+          price: number | null
+          sort_order: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          category_id?: string | null
+          created_at?: string
+          id?: string
+          monthly_target: number
+          name: string
+          price?: number | null
+          sort_order?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          category_id?: string | null
+          created_at?: string
+          id?: string
+          monthly_target?: number
+          name?: string
+          price?: number | null
+          sort_order?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       expense_limits: {
         Row: {
           category: string
