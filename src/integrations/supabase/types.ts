@@ -134,6 +134,75 @@ export type Database = {
         }
         Relationships: []
       }
+      debt_payments: {
+        Row: {
+          amount: number
+          created_at: string
+          date: string
+          debt_id: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          date: string
+          debt_id: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          date?: string
+          debt_id?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      debts: {
+        Row: {
+          affects_balance: boolean
+          amount: number
+          created_at: string
+          date: string
+          direction: string
+          due_date: string | null
+          id: string
+          note: string | null
+          person: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          affects_balance?: boolean
+          amount: number
+          created_at?: string
+          date: string
+          direction: string
+          due_date?: string | null
+          id?: string
+          note?: string | null
+          person: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          affects_balance?: boolean
+          amount?: number
+          created_at?: string
+          date?: string
+          direction?: string
+          due_date?: string | null
+          id?: string
+          note?: string | null
+          person?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       expense_limits: {
         Row: {
           category: string

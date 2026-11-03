@@ -110,7 +110,7 @@ export const BudgetView = () => {
         </div>
       </section>
 
-      {section("With a limit", limited)}
+      {section("With a limit", limited, "The small line on each bar is today. Keep the bar behind it to stay on pace.")}
       {section("No limit", unlimited, "Tap one to give it a monthly limit.")}
       {section("Income", income)}
       {section("Archived", archived, "Hidden from logging. Past entries keep them.")}

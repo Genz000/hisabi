@@ -1,9 +1,10 @@
 import { lazy, Suspense, useState } from "react";
-import { Flame, History, PenLine, PieChart, ShoppingBasket } from "lucide-react";
+import { Flame, HandCoins, History, PenLine, PieChart, ShoppingBasket } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { QuickAdd } from "@/components/log/QuickAdd";
 import { BudgetView } from "@/components/budget/BudgetView";
 import { ItemsView } from "@/components/items/ItemsView";
+import { DebtsView } from "@/components/debts/DebtsView";
 import { SettingsSheet } from "@/components/SettingsSheet";
 import { useHisabi } from "@/data/HisabiStore";
 import { currentStreak, isActiveToday } from "@/lib/hisabi";
@@ -16,6 +17,7 @@ const TABS = [
   { id: "log", label: "Log", icon: PenLine },
   { id: "budget", label: "Budget", icon: PieChart },
   { id: "items", label: "Items", icon: ShoppingBasket },
+  { id: "debts", label: "Debts", icon: HandCoins },
   { id: "history", label: "History", icon: History },
 ] as const;
 
@@ -65,6 +67,7 @@ export const AppShell = () => {
         {tab === "log" && <QuickAdd onOpenBudget={() => setTab("budget")} />}
         {tab === "budget" && <BudgetView />}
         {tab === "items" && <ItemsView />}
+        {tab === "debts" && <DebtsView />}
         {tab === "history" && (
           <Suspense fallback={null}>
             <HistoryView />
@@ -73,7 +76,7 @@ export const AppShell = () => {
       </main>
 
       <nav className="shrink-0 bg-card pb-safe shadow-[0_-4px_16px_-8px_hsl(var(--foreground)/0.12)]" aria-label="Main">
-        <ul className="grid grid-cols-4">
+        <ul className="grid grid-cols-5">
           {TABS.map(({ id, label, icon: Icon }) => (
             <li key={id}>
               <button
@@ -85,7 +88,7 @@ export const AppShell = () => {
                   tab === id ? "text-primary" : "text-muted-foreground",
                 )}
               >
-                <span className={cn("grid h-8 w-14 place-items-center rounded-full transition-colors", tab === id && "bg-secondary")}>
+                <span className={cn("grid h-8 w-12 place-items-center rounded-full transition-colors", tab === id && "bg-secondary")}>
                   <Icon className="h-5 w-5" strokeWidth={tab === id ? 2.25 : 1.75} aria-hidden />
                 </span>
                 {label}

@@ -1,5 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
-import type { Category, Item, ItemLog, Kind, Profile, Transaction } from "@/lib/hisabi";
+import type { Category, Debt, DebtPayment, Item, ItemLog, Kind, Profile, Transaction } from "@/lib/hisabi";
 
 export interface Snapshot {
   userId: string;
@@ -10,6 +10,8 @@ export interface Snapshot {
   checkIns: string[];
   items: Item[];
   itemLogs: ItemLog[];
+  debts: Debt[];
+  debtPayments: DebtPayment[];
 }
 
 /** Everything the app reads and writes. The Supabase one is real; the demo one lives in memory. */
@@ -25,6 +27,10 @@ export interface Backend {
   deleteItem(id: string): Promise<void>;
   insertItemLog(l: ItemLog): Promise<void>;
   deleteItemLog(id: string): Promise<void>;
+  saveDebt(d: Debt): Promise<void>;
+  deleteDebt(id: string): Promise<void>;
+  insertDebtPayment(p: DebtPayment): Promise<void>;
+  deleteDebtPayment(id: string): Promise<void>;
   updateProfile(patch: Partial<Profile>): Promise<void>;
   uploadAvatar(blob: Blob): Promise<string>;
   signOut(): Promise<void>;
@@ -89,13 +95,15 @@ const check = <T extends { error: { message: string; code?: string } | null }>(r
 
 export const createSupabaseBackend = (userId: string, email: string | null): Backend => ({
   async load() {
-    const [profile, categories, transactions, checkIns, items, itemLogs] = await Promise.all([
+    const [profile, categories, transactions, checkIns, items, itemLogs, debts, debtPayments] = await Promise.all([
       supabase.from("profiles").select("currency, starting_balance, avatar_url").eq("user_id", userId).maybeSingle(),
       supabase.from("categories").select("*").order("sort_order"),
       supabase.from("transactions").select("*").order("date", { ascending: false }).order("created_at", { ascending: false }),
       supabase.from("check_ins").select("date"),
       supabase.from("items").select("*").order("sort_order"),
       supabase.from("item_logs").select("*").order("date", { ascending: false }),
+      supabase.from("debts").select("*").order("date", { ascending: false }),
+      supabase.from("debt_payments").select("*").order("date", { ascending: false }),
     ]);
     check(profile);
     check(categories);
@@ -103,6 +111,8 @@ export const createSupabaseBackend = (userId: string, email: string | null): Bac
     check(checkIns);
     check(items);
     check(itemLogs);
+    check(debts);
+    check(debtPayments);
     return {
       userId,
       email,
@@ -121,6 +131,22 @@ export const createSupabaseBackend = (userId: string, email: string | null): Bac
         date: l.date,
         transactionId: l.transaction_id,
         createdAt: l.created_at,
+      })),
+      debts: (debts.data ?? []).map((d) => ({
+        id: d.id,
+        person: d.person,
+        direction: d.direction as Debt["direction"],
+        amount: Number(d.amount),
+        note: d.note ?? "",
+        date: d.date,
+        dueDate: d.due_date,
+        affectsBalance: d.affects_balance,
+      })),
+      debtPayments: (debtPayments.data ?? []).map((p) => ({
+        id: p.id,
+        debtId: p.debt_id,
+        amount: Number(p.amount),
+        date: p.date,
       })),
     };
   },
@@ -213,6 +239,37 @@ export const createSupabaseBackend = (userId: string, email: string | null): Bac
 
   async deleteItemLog(id) {
     check(await supabase.from("item_logs").delete().eq("id", id));
+  },
+
+  async saveDebt(d) {
+    check(
+      await supabase.from("debts").upsert({
+        id: d.id,
+        user_id: userId,
+        person: d.person,
+        direction: d.direction,
+        amount: d.amount,
+        note: d.note || null,
+        date: d.date,
+        due_date: d.dueDate,
+        affects_balance: d.affectsBalance,
+      }),
+    );
+  },
+
+  async deleteDebt(id) {
+    check(await supabase.from("debts").delete().eq("id", id));
+  },
+
+  async insertDebtPayment(p) {
+    const res = await supabase
+      .from("debt_payments")
+      .insert({ id: p.id, user_id: userId, debt_id: p.debtId, amount: p.amount, date: p.date });
+    if (res.error && res.error.code !== "23505") throw res.error;
+  },
+
+  async deleteDebtPayment(id) {
+    check(await supabase.from("debt_payments").delete().eq("id", id));
   },
 
   async updateProfile(patch) {

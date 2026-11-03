@@ -1,6 +1,6 @@
 import { subDays } from "date-fns";
 import type { Backend, Snapshot } from "./backend";
-import { toISODate, type Category, type Item, type ItemLog, type Kind, type Transaction } from "@/lib/hisabi";
+import { toISODate, type Category, type Debt, type Item, type ItemLog, type Kind, type Transaction } from "@/lib/hisabi";
 
 // In-memory data for the dev-only /demo route, so the signed-in screens can be
 // reviewed without an account. Nothing here touches Supabase.
@@ -67,6 +67,13 @@ const seed = (): Snapshot => {
   });
   const itemLogs = [log(items[0], 0), log(items[0], 1), log(items[0], 3), log(items[1], 2), log(items[2], 5)];
 
+  const day = (n: number) => toISODate(subDays(today, n));
+  const debts: Debt[] = [
+    { id: crypto.randomUUID(), person: "Youssef", direction: "borrowed", amount: 2000, note: "Laptop repair", date: day(20), dueDate: day(-25), affectsBalance: true },
+    { id: crypto.randomUUID(), person: "Hajar", direction: "lent", amount: 500, note: "", date: day(6), dueDate: null, affectsBalance: true },
+  ];
+  const debtPayments = [{ id: crypto.randomUUID(), debtId: debts[0].id, amount: 800, date: day(4) }];
+
   return {
     userId: "demo",
     email: "demo@hisabi.local",
@@ -76,6 +83,8 @@ const seed = (): Snapshot => {
     checkIns: [toISODate(subDays(today, 8)), toISODate(subDays(today, 10)), toISODate(subDays(today, 11))],
     items,
     itemLogs,
+    debts,
+    debtPayments,
   };
 };
 
@@ -139,6 +148,25 @@ export const createDemoBackend = (): Backend => {
     async deleteItemLog(id) {
       await wait();
       data.itemLogs = data.itemLogs.filter((l) => l.id !== id);
+    },
+    async saveDebt(d) {
+      await wait();
+      const at = data.debts.findIndex((x) => x.id === d.id);
+      if (at >= 0) data.debts[at] = d;
+      else data.debts.unshift(d);
+    },
+    async deleteDebt(id) {
+      await wait();
+      data.debts = data.debts.filter((d) => d.id !== id);
+      data.debtPayments = data.debtPayments.filter((p) => p.debtId !== id);
+    },
+    async insertDebtPayment(p) {
+      await wait();
+      data.debtPayments.unshift(p);
+    },
+    async deleteDebtPayment(id) {
+      await wait();
+      data.debtPayments = data.debtPayments.filter((p) => p.id !== id);
     },
     async updateProfile(patch) {
       await wait();

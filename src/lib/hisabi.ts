@@ -41,6 +41,28 @@ export interface ItemLog {
   createdAt?: string;
 }
 
+/** "borrowed": I owe the person. "lent": the person owes me. */
+export type DebtDirection = "borrowed" | "lent";
+
+export interface Debt {
+  id: string;
+  person: string;
+  direction: DebtDirection;
+  amount: number;
+  note: string;
+  date: string; // yyyy-MM-dd
+  dueDate: string | null;
+  /** The money went through my balance when it happened (and comes back through it). */
+  affectsBalance: boolean;
+}
+
+export interface DebtPayment {
+  id: string;
+  debtId: string;
+  amount: number;
+  date: string;
+}
+
 export interface Profile {
   currency: string;
   startingBalance: number;
@@ -120,8 +142,30 @@ export const isActiveToday = (transactions: Transaction[], checkIns: string[]) =
   );
 };
 
-export const balanceOf = (transactions: Transaction[], startingBalance: number) =>
-  transactions.reduce((sum, t) => sum + (t.type === "income" ? t.amount : -t.amount), startingBalance);
+export const balanceOf = (transactions: Transaction[], startingBalance: number, debtFlow = 0) =>
+  transactions.reduce((sum, t) => sum + (t.type === "income" ? t.amount : -t.amount), startingBalance + debtFlow);
+
+/** What's still owed on each debt. */
+export const debtRemaining = (debts: Debt[], payments: DebtPayment[]) => {
+  const paid = new Map<string, number>();
+  for (const p of payments) paid.set(p.debtId, (paid.get(p.debtId) ?? 0) + p.amount);
+  return new Map(debts.map((d) => [d.id, Math.max(0, d.amount - (paid.get(d.id) ?? 0))]));
+};
+
+/**
+ * How debts moved the balance: borrowing adds money and paying it back takes it out;
+ * lending takes money out and being paid back adds it. Debts are not spending or income.
+ */
+export const debtCashFlow = (debts: Debt[], payments: DebtPayment[]) => {
+  const byId = new Map(debts.map((d) => [d.id, d]));
+  let flow = 0;
+  for (const d of debts) if (d.affectsBalance) flow += d.direction === "borrowed" ? d.amount : -d.amount;
+  for (const p of payments) {
+    const d = byId.get(p.debtId);
+    if (d?.affectsBalance) flow += d.direction === "borrowed" ? -p.amount : p.amount;
+  }
+  return flow;
+};
 
 export type Pace = "none" | "good" | "fast" | "over";
 

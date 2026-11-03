@@ -1,6 +1,16 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import type { Backend, Snapshot } from "./backend";
-import { todayISO, type Category, type Item, type ItemLog, type Kind, type Profile, type Transaction } from "@/lib/hisabi";
+import {
+  todayISO,
+  type Category,
+  type Debt,
+  type DebtPayment,
+  type Item,
+  type ItemLog,
+  type Kind,
+  type Profile,
+  type Transaction,
+} from "@/lib/hisabi";
 
 export interface NewTransaction {
   amount: number;
@@ -25,6 +35,10 @@ interface HisabiStore {
   /** Ticks one purchase. An item with a price also logs it as spending in its category. */
   logItem(item: Item): Promise<ItemLog>;
   unlogItem(log: ItemLog): Promise<void>;
+  saveDebt(d: Debt): Promise<void>;
+  deleteDebt(id: string): Promise<void>;
+  addDebtPayment(debtId: string, amount: number, date?: string): Promise<DebtPayment>;
+  deleteDebtPayment(id: string): Promise<void>;
   updateProfile(patch: Partial<Profile>): Promise<void>;
   uploadAvatar(blob: Blob): Promise<void>;
   signOut(): Promise<void>;
@@ -248,6 +262,35 @@ export const HisabiProvider = ({
           throw e;
         }
         if (log.transactionId) await deleteTransaction(log.transactionId).catch(() => undefined);
+      },
+
+      async saveDebt(debt) {
+        await backend.saveDebt(debt);
+        setData((d) => {
+          if (!d) return d;
+          const exists = d.debts.some((x) => x.id === debt.id);
+          return { ...d, debts: exists ? d.debts.map((x) => (x.id === debt.id ? debt : x)) : [debt, ...d.debts] };
+        });
+      },
+
+      async deleteDebt(id) {
+        await backend.deleteDebt(id);
+        setData(
+          (d) =>
+            d && { ...d, debts: d.debts.filter((x) => x.id !== id), debtPayments: d.debtPayments.filter((p) => p.debtId !== id) },
+        );
+      },
+
+      async addDebtPayment(debtId, amount, date = todayISO()) {
+        const p: DebtPayment = { id: crypto.randomUUID(), debtId, amount, date };
+        await backend.insertDebtPayment(p);
+        setData((d) => d && { ...d, debtPayments: [p, ...d.debtPayments] });
+        return p;
+      },
+
+      async deleteDebtPayment(id) {
+        await backend.deleteDebtPayment(id);
+        setData((d) => d && { ...d, debtPayments: d.debtPayments.filter((p) => p.id !== id) });
       },
 
       async updateProfile(patch) {

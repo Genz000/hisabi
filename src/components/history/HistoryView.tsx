@@ -8,7 +8,7 @@ import { SpendingChart } from "@/components/SpendingChart";
 import { CategoryBreakdown } from "@/components/CategoryBreakdown";
 import { TransactionSheet } from "./TransactionSheet";
 import { useHisabi } from "@/data/HisabiStore";
-import { balanceOf, formatMoney, monthOf, monthStatus, todayISO, toISODate, type Transaction } from "@/lib/hisabi";
+import { balanceOf, debtCashFlow, formatMoney, monthOf, monthStatus, todayISO, toISODate, type Transaction } from "@/lib/hisabi";
 import { cn } from "@/lib/utils";
 
 const PAGE = 60;
@@ -32,7 +32,7 @@ export const HistoryView = () => {
   const thisMonth = data.transactions.filter((t) => monthOf(t.date) === month);
   const out = thisMonth.filter((t) => t.type === "expense").reduce((s, t) => s + t.amount, 0);
   const inc = thisMonth.filter((t) => t.type === "income").reduce((s, t) => s + t.amount, 0);
-  const balance = balanceOf(data.transactions, startingBalance);
+  const balance = balanceOf(data.transactions, startingBalance, debtCashFlow(data.debts, data.debtPayments));
   const net = inc - out;
 
   // Last month up to the same day, so early-month numbers compare fairly

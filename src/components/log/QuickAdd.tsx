@@ -11,6 +11,7 @@ import { useHisabi } from "@/data/HisabiStore";
 import { catStyle } from "@/lib/colors";
 import {
   balanceOf,
+  debtCashFlow,
   formatNumber,
   isActiveToday,
   limitState,
@@ -64,7 +65,7 @@ export const QuickAdd = ({ onOpenBudget }: { onOpenBudget: () => void }) => {
       transaction: saved,
       category,
       spentThisMonth: (totals.get(category.name) ?? 0) + (isThisMonth ? saved.amount : 0),
-      balance: balanceOf(data.transactions, startingBalance) + (kind === "income" ? amount : -amount),
+      balance: balanceOf(data.transactions, startingBalance, debtCashFlow(data.debts, data.debtPayments)) + (kind === "income" ? amount : -amount),
     });
     navigator.vibrate?.(12);
   };
